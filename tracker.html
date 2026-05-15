@@ -1,0 +1,2400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="配货记录">
+<title>Hermès · 配货记录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F7F4EE;
+  --cream-dark: #EDE8DF;
+  --sand: #D4C9B0;
+  --gold: #B8974A;
+  --gold-light: #D4B06A;
+  --charcoal: #2A2520;
+  --charcoal-soft: #3D3830;
+  --mid: #6B6258;
+  --light: #9A9188;
+  --white: #FDFCFA;
+  --tab-h: 83px;
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 34px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--cream); }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  color: var(--charcoal);
+  overscroll-behavior: none;
+}
+
+/* SCROLL CONTAINER */
+.app {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--tab-h) + 8px);
+}
+
+/* STATUS BAR HEADER */
+.status-bar {
+  background: var(--charcoal);
+  padding-top: var(--safe-top);
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-inner { display: flex; justify-content: space-between; align-items: flex-end; }
+.header-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+}
+.header-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(247,244,238,0.4); margin-top: 1px; }
+.header-ratio {
+  text-align: right;
+}
+.header-ratio-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--gold-light);
+  line-height: 1;
+}
+.header-ratio-label { font-size: 10px; color: rgba(247,244,238,0.4); letter-spacing: 0.06em; margin-top: 1px; }
+
+/* BOTTOM TABS */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: var(--tab-h);
+  background: var(--white);
+  border-top: 0.5px solid var(--cream-dark);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 0;
+  color: var(--light);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.tab-item.active { color: var(--gold); }
+.tab-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.tab-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 0;
+  color: var(--white);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  margin-top: -18px;
+}
+.tab-center-btn {
+  width: 52px; height: 52px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(184,151,74,0.4);
+}
+.tab-center-btn svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 1.5; }
+.tab-center-label { color: var(--gold); font-size: 10px; margin-top: 2px; }
+
+/* PAGE */
+.page { display: none; }
+.page.active { display: block; }
+
+/* RATIO HERO */
+.ratio-hero {
+  margin: 16px 16px 0;
+  background: var(--charcoal);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.ratio-hero::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(184,151,74,0.2);
+}
+.ratio-hero::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(184,151,74,0.1);
+}
+.ratio-target-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  color: rgba(247,244,238,0.5);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.ratio-big {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px;
+  font-weight: 300;
+  color: var(--gold-light);
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.ratio-bar-bg { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 12px; }
+.ratio-bar-fill { height: 3px; border-radius: 2px; transition: width 0.8s ease; }
+.ratio-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+.ratio-spent { font-size: 12px; color: rgba(247,244,238,0.45); }
+.ratio-gap { font-size: 13px; color: rgba(247,244,238,0.7); }
+.ratio-gap span { color: var(--gold-light); font-weight: 500; }
+.hero-switch-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.1);
+  border: 0.5px solid rgba(184,151,74,0.35);
+  border-radius: 20px;
+  padding: 5px 10px 5px 8px;
+  font-size: 11px;
+  color: rgba(247,244,238,0.7);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+  -webkit-appearance: none;
+  margin-bottom: 10px;
+}
+.hero-switch-btn svg { width: 12px; height: 12px; stroke: var(--gold-light); fill: none; stroke-width: 2; }
+
+/* TARGET PICKER SHEET */
+.target-item {
+  display: flex; align-items: center;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--cream-dark);
+  cursor: pointer;
+  gap: 12px;
+}
+.target-item:last-child { border-bottom: none; }
+.target-item-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.target-item-check.active { background: var(--gold); border-color: var(--gold); }
+.target-item-check.active::after { content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; display: block; }
+.target-item-name { font-size: 14px; font-weight: 500; color: var(--charcoal); }
+.target-item-detail { font-size: 12px; color: var(--light); margin-top: 2px; }
+.target-item-ratio { margin-left: auto; font-family: 'Cormorant Garamond', serif; font-size: 18px; flex-shrink: 0; }
+
+/* PRIMARY BADGE on wishlist */
+.primary-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(184,151,74,0.12);
+  border: 0.5px solid rgba(184,151,74,0.4);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--gold);
+}
+.set-primary-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  background: none;
+  border: 0.5px solid var(--sand);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--mid);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-appearance: none;
+}
+.set-primary-btn:active { background: var(--cream-dark); }
+
+/* METRICS GRID */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 16px 0;
+}
+.metric-card {
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.metric-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--light); margin-bottom: 6px; }
+.metric-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 300; color: var(--charcoal); line-height: 1;
+}
+.metric-sub { font-size: 11px; color: var(--light); margin-top: 4px; }
+
+/* SECTION HEADER */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 16px 10px;
+}
+.section-title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--light); }
+.section-more { font-size: 12px; color: var(--gold); }
+
+/* RECORD CARD */
+.record-card {
+  margin: 0 16px 10px;
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.record-cat-dot {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.record-info { flex: 1; min-width: 0; }
+.record-name { font-size: 14px; font-weight: 500; color: var(--charcoal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.record-meta { font-size: 11px; color: var(--light); margin-top: 2px; }
+.record-right { text-align: right; flex-shrink: 0; }
+.record-amount { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--charcoal); }
+.record-contrib { font-size: 11px; color: #2D6A4F; margin-top: 2px; }
+.record-contrib.no { color: var(--light); }
+
+/* SCAN PAGE */
+.scan-page { padding: 16px; }
+.upload-card {
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.upload-zone {
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  border-bottom: 0.5px solid var(--cream-dark);
+}
+.upload-circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 0.5px solid var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.upload-circle svg { width: 28px; height: 28px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+.upload-text { font-size: 15px; color: var(--charcoal-soft); font-weight: 500; }
+.upload-sub { font-size: 12px; color: var(--light); margin-top: 5px; }
+
+.preview-section { display: none; }
+.preview-img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+.preview-actions {
+  display: flex;
+  border-top: 0.5px solid var(--cream-dark);
+}
+.preview-action-btn {
+  flex: 1;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.preview-action-btn:first-child { color: var(--light); border-right: 0.5px solid var(--cream-dark); }
+.preview-action-btn:last-child { color: var(--gold); font-weight: 500; }
+
+.analyzing-section {
+  display: none;
+  padding: 32px 20px;
+  text-align: center;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--cream-dark);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.analyzing-text { font-size: 14px; color: var(--mid); }
+.analyzing-sub { font-size: 12px; color: var(--light); margin-top: 4px; }
+
+/* FORM */
+.form-card {
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  display: none;
+}
+.form-card-title {
+  padding: 14px 16px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--light);
+  border-bottom: 0.5px solid var(--cream-dark);
+  background: var(--cream);
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  min-height: 52px;
+  border-bottom: 0.5px solid var(--cream-dark);
+}
+.form-row:last-child { border-bottom: none; }
+.form-row-label { font-size: 14px; color: var(--charcoal); width: 80px; flex-shrink: 0; }
+.form-row-input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--charcoal);
+  font-family: 'DM Sans', sans-serif;
+  text-align: right;
+  padding: 14px 0;
+  outline: none;
+  -webkit-appearance: none;
+}
+.form-row-input::placeholder { color: var(--light); }
+.form-row select.form-row-input { cursor: pointer; }
+.toggle-row {
+  display: flex; align-items: center;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--cream-dark);
+}
+.toggle-info { flex: 1; }
+.toggle-label { font-size: 14px; color: var(--charcoal); }
+.toggle-sub { font-size: 11px; color: var(--light); margin-top: 2px; }
+.toggle { position: relative; width: 44px; height: 26px; cursor: pointer; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--sand); border-radius: 13px; transition: .3s; }
+.toggle-slider:before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle input:checked + .toggle-slider { background: var(--gold); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+.impact-bar {
+  background: var(--cream);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0 16px 12px;
+  font-size: 13px;
+  color: var(--mid);
+  display: none;
+  line-height: 1.5;
+}
+.impact-bar strong { color: var(--charcoal); font-weight: 500; }
+
+.save-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--charcoal);
+  color: var(--cream);
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 12px;
+  -webkit-appearance: none;
+  transition: opacity 0.2s;
+}
+.save-btn:active { opacity: 0.8; }
+
+/* RECORDS PAGE */
+.records-page { padding: 16px; }
+.filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-chip {
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 0.5px solid var(--sand);
+  background: var(--white);
+  color: var(--mid);
+  -webkit-appearance: none;
+  flex-shrink: 0;
+}
+.filter-chip.active { background: var(--charcoal); color: var(--cream); border-color: var(--charcoal); }
+
+/* SA PAGE */
+.sa-page { padding: 16px; }
+.sa-card {
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.sa-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 0.5px solid var(--cream-dark); }
+.avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--charcoal);
+  color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+.sa-name { font-size: 16px; font-weight: 500; }
+.sa-store { font-size: 12px; color: var(--light); margin-top: 2px; }
+.sa-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.sa-stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--light); margin-bottom: 3px; }
+.sa-stat-val { font-size: 15px; font-weight: 500; }
+.sa-note { background: var(--cream); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--mid); line-height: 1.6; }
+.add-fab {
+  position: fixed;
+  bottom: calc(var(--tab-h) + 16px);
+  right: 20px;
+  width: 50px; height: 50px;
+  background: var(--charcoal);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 16px rgba(42,37,32,0.3);
+  cursor: pointer;
+  z-index: 90;
+}
+.add-fab svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+
+/* WISHLIST PAGE */
+.wish-page { padding: 16px; }
+.wish-card {
+  background: var(--white);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.wish-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.wish-rank-badge {
+  width: 28px; height: 28px;
+  border: 0.5px solid var(--sand);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.wish-title { font-size: 15px; font-weight: 500; flex: 1; margin: 0 12px; }
+.wish-status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; }
+.status-waiting { background: #FEF3CD; color: #7A5C1E; }
+.status-plan { background: var(--cream-dark); color: var(--mid); }
+.status-done { background: #D4EDDA; color: #2D5A2D; }
+.wish-detail { font-size: 12px; color: var(--light); margin: 0 0 14px 40px; }
+.wish-ratio-section { padding-top: 12px; border-top: 0.5px solid var(--cream-dark); }
+.wish-ratio-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.wish-ratio-label { font-size: 12px; color: var(--light); }
+.wish-ratio-pct { font-family: 'Cormorant Garamond', serif; font-size: 18px; }
+.wish-price { font-size: 12px; color: var(--light); }
+
+/* SHEET MODAL */
+.sheet-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(42,37,32,0.5);
+  z-index: 200;
+  align-items: flex-end;
+}
+.sheet-overlay.open { display: flex; }
+.sheet {
+  background: var(--white);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--safe-bottom);
+}
+.sheet-handle { width: 36px; height: 4px; background: var(--sand); border-radius: 2px; margin: 12px auto 0; }
+.sheet-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  padding: 16px 20px 12px;
+  border-bottom: 0.5px solid var(--cream-dark);
+}
+.sheet-body { padding: 16px 20px; overflow-y: auto; max-height: calc(85vh - 80px); -webkit-overflow-scrolling: touch; }
+.sheet-field { margin-bottom: 14px; }
+.sheet-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--light); margin-bottom: 6px; display: block; }
+.sheet-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 10px;
+  background: var(--cream);
+  color: var(--charcoal);
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  -webkit-appearance: none;
+}
+.sheet-input:focus { border-color: var(--gold); background: var(--white); }
+.sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sheet-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--charcoal);
+  color: var(--cream);
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 4px;
+  -webkit-appearance: none;
+}
+.sheet-btn:active { opacity: 0.8; }
+.sheet-btn-outline {
+  background: none;
+  border: 0.5px solid var(--sand);
+  color: var(--mid);
+  margin-top: 8px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: calc(var(--tab-h) + 16px);
+  left: 16px; right: 16px;
+  background: var(--charcoal);
+  color: var(--cream);
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  z-index: 999;
+  transform: translateY(10px);
+  opacity: 0;
+  transition: all 0.3s;
+  border-left: 3px solid var(--gold);
+  text-align: center;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* BADGE */
+.badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 11px; }
+.badge-bag { background: #F5EDD8; color: #7A5C1E; }
+.badge-scarf { background: #E8F0E8; color: #2D5A2D; }
+.badge-acc { background: #E8EAF5; color: #2D3A7A; }
+.badge-perf { background: #F5E8F0; color: #7A2D5A; }
+.badge-other { background: var(--cream-dark); color: var(--mid); }
+
+.store-picker-trigger {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px;
+  background: var(--cream);
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+.store-picker-trigger:active { background: var(--cream-dark); }
+
+.sp-section { border-bottom: 0.5px solid var(--cream-dark); }
+.sp-section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 14px; font-weight: 500; color: var(--charcoal);
+}
+.sp-section-header:active { background: var(--cream); }
+.sp-section-arrow { font-size: 11px; color: var(--light); transition: transform 0.2s; }
+.sp-section-arrow.open { transform: rotate(90deg); }
+.sp-cities { display: none; }
+.sp-cities.open { display: block; }
+.sp-city { border-top: 0.5px solid var(--cream-dark); }
+.sp-city-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 20px 11px 32px;
+  cursor: pointer;
+  font-size: 13px; color: var(--charcoal-soft);
+}
+.sp-city-header:active { background: var(--cream); }
+.sp-stores { display: none; }
+.sp-stores.open { display: block; }
+.sp-store-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 20px 11px 44px;
+  cursor: pointer;
+  border-top: 0.5px solid var(--cream-dark);
+  font-size: 13px; color: var(--mid);
+}
+.sp-store-item:active { background: var(--cream-dark); }
+.sp-store-item.selected { color: var(--gold); font-weight: 500; }
+.sp-custom { padding: 16px 20px; border-top: 0.5px solid var(--cream-dark); }
+.sp-custom-input {
+  width: 100%; padding: 10px 12px;
+  border: 0.5px solid var(--cream-dark);
+  border-radius: 8px; background: var(--cream);
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  color: var(--charcoal); outline: none; margin-bottom: 10px;
+}
+.sp-custom-btn {
+  width: 100%; padding: 11px;
+  background: var(--charcoal); color: var(--cream);
+  border: none; border-radius: 8px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.empty-state { text-align: center; padding: 60px 20px; color: var(--light); }
+.empty-icon { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; color: var(--sand); margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+.empty-icon { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; color: var(--sand); margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* ADVICE CARD */
+.advice-card {
+  margin: 12px 16px 0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.advice-card.advice-low {
+  background: rgba(192,57,43,0.07);
+  border: 0.5px solid rgba(192,57,43,0.2);
+}
+.advice-card.advice-mid {
+  background: rgba(184,151,74,0.1);
+  border: 0.5px solid rgba(184,151,74,0.35);
+}
+.advice-card.advice-high {
+  background: rgba(45,106,79,0.08);
+  border: 0.5px solid rgba(45,106,79,0.25);
+}
+.advice-card.advice-over {
+  background: rgba(42,37,32,0.06);
+  border: 0.5px solid var(--sand);
+}
+.advice-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.advice-body {}
+.advice-title { font-size: 13px; font-weight: 500; color: var(--charcoal); margin-bottom: 3px; }
+.advice-text { font-size: 12px; color: var(--mid); line-height: 1.6; }
+.advice-action {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-appearance: none;
+}
+.advice-mid .advice-action { background: var(--gold); color: var(--white); }
+.advice-high .advice-action { background: #2D6A4F; color: var(--white); }
+.advice-over .advice-action { background: var(--charcoal); color: var(--cream); }
+
+/* MULTI-ITEM SCAN RESULTS */
+.scan-meta-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--white); border: 0.5px solid var(--cream-dark);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+}
+.scan-meta-label { font-size: 11px; color: var(--light); width: 32px; flex-shrink: 0; letter-spacing: 0.06em; }
+.scan-meta-val { font-size: 14px; color: var(--charcoal); flex: 1; }
+.scan-meta-change { font-size: 12px; color: var(--gold); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 0; flex-shrink: 0; }
+.item-card {
+  background: var(--white); border: 0.5px solid var(--cream-dark);
+  border-radius: 12px; margin-bottom: 8px; overflow: hidden; transition: border-color 0.2s;
+}
+.item-card.selected { border-color: var(--gold); }
+.item-card-main { display: flex; align-items: center; padding: 13px 14px; gap: 10px; }
+.item-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--sand); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s; cursor: pointer;
+}
+.item-check.on { background: var(--gold); border-color: var(--gold); }
+.item-check.on::after { content:''; width:8px; height:8px; background:white; border-radius:50%; display:block; }
+.item-info { flex:1; min-width:0; }
+.item-name { font-size: 14px; font-weight: 500; color: var(--charcoal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sub { font-size: 11px; color: var(--light); margin-top: 2px; }
+.item-amount { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--charcoal); flex-shrink: 0; }
+.item-edit-btn {
+  padding: 5px 10px; font-size: 12px; color: var(--mid);
+  background: none; border: 0.5px solid var(--cream-dark);
+  border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; flex-shrink: 0;
+}
+.item-edit-panel { display: none; border-top: 0.5px solid var(--cream-dark); padding: 12px 14px; background: var(--cream); }
+.item-edit-panel.open { display: block; }
+.item-edit-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+.item-edit-row:last-child { margin-bottom: 0; }
+.item-edit-label { font-size: 11px; color: var(--light); width: 32px; flex-shrink: 0; }
+.item-edit-input {
+  flex:1; padding: 7px 10px; border: 0.5px solid var(--cream-dark);
+  border-radius: 8px; background: var(--white); color: var(--charcoal);
+  font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; -webkit-appearance: none;
+}
+.item-edit-input:focus { border-color: var(--gold); }
+.item-ratio-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-top: 0.5px solid var(--cream-dark); margin-top: 4px;
+}
+.item-ratio-row span { font-size: 13px; color: var(--charcoal-soft); }
+
+/* ARCHIVE BUTTON */
+.archive-btn {
+  width: 100%; margin-top: 10px; padding: 13px;
+  background: linear-gradient(135deg, #E8A020 0%, #F0C040 50%, #E8A020 100%);
+  color: #3D2000; border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+  box-shadow: 0 3px 0 #A06010, 0 4px 8px rgba(184,151,74,0.3);
+  -webkit-appearance: none;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.archive-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #A06010, 0 2px 4px rgba(184,151,74,0.2);
+}
+
+/* MARIO CELEBRATION OVERLAY */
+.mario-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.85);
+  align-items: center; justify-content: center;
+  flex-direction: column;
+}
+.mario-overlay.show { display: flex; }
+.mario-stage {
+  width: 100%; max-width: 360px; position: relative;
+  height: 320px; overflow: hidden;
+}
+.mario-text {
+  font-family: 'Courier New', monospace;
+  font-size: 22px; font-weight: 700;
+  color: #FFD700; text-align: center;
+  text-shadow: 2px 2px 0 #8B4513, -1px -1px 0 #8B4513;
+  letter-spacing: 0.06em;
+  animation: marioText 0.5s steps(1) infinite;
+}
+@keyframes marioText { 0%,49%{opacity:1} 50%,100%{opacity:0.7} }
+.mario-sub {
+  font-family: 'Courier New', monospace;
+  font-size: 13px; color: #FFD700;
+  text-align: center; margin-top: 8px; opacity: 0.8;
+}
+.pixel-coin {
+  position: absolute;
+  width: 20px; height: 20px;
+  background: #FFD700;
+  border: 2px solid #B8860B;
+  border-radius: 50%;
+  animation: coinFall linear forwards;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: bold; color: #B8860B;
+}
+@keyframes coinFall {
+  0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(350px) rotate(720deg); opacity: 0; }
+}
+.pixel-star {
+  position: absolute;
+  font-size: 24px;
+  animation: starFloat 0.8s ease-out forwards;
+}
+@keyframes starFloat {
+  0% { transform: translateY(0) scale(0.5); opacity: 1; }
+  100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+.mario-score {
+  font-family: 'Courier New', monospace;
+  font-size: 32px; font-weight: 700;
+  color: #FFD700;
+  text-shadow: 3px 3px 0 #8B4513;
+  text-align: center; margin-top: 16px;
+  animation: scoreAppear 0.3s steps(2) forwards;
+}
+@keyframes scoreAppear { from{transform:scale(0)} to{transform:scale(1)} }
+.mario-continue-btn {
+  margin-top: 24px; padding: 12px 32px;
+  background: #E8A020; color: #3D2000;
+  border: 3px solid #FFD700; border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.08em;
+  animation: btnBlink 0.6s steps(1) infinite;
+}
+@keyframes btnBlink { 0%,49%{border-color:#FFD700} 50%,100%{border-color:#8B4513} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <header class="status-bar">
+    <div class="header-inner">
+      <div>
+        <div class="header-logo">Hermès</div>
+        <div class="header-sub">配货记录</div>
+      </div>
+      <div class="header-ratio">
+        <div class="header-ratio-pct" id="hdr-ratio">87%</div>
+        <div class="header-ratio-label">当前累积</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCROLL BODY -->
+  <div class="scroll-body">
+
+    <!-- HOME -->
+    <div id="page-home" class="page active">
+      <div class="ratio-hero">
+        <button class="hero-switch-btn" onclick="openSheet('target-picker')">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          <span id="hero-target">Birkin 25 · 金棕 Togo</span>
+        </button>
+        <div class="ratio-big" id="hero-pct">87%</div>
+        <div class="ratio-bar-bg">
+          <div class="ratio-bar-fill" id="hero-bar" style="width:87%;background:var(--gold)"></div>
+        </div>
+        <div class="ratio-bottom">
+          <div class="ratio-spent">已累积 ¥<span id="hero-spent">218,500</span></div>
+          <div class="ratio-gap">还差 <span id="hero-gap">¥31,500</span></div>
+        </div>
+      </div>
+
+      <div id="advice-card"></div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">总消费</div>
+          <div class="metric-val" id="m-total">¥218,500</div>
+          <div class="metric-sub">近12个月</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">消费次数</div>
+          <div class="metric-val" id="m-visits">23</div>
+          <div class="metric-sub">约每18天一次</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">计入累积</div>
+          <div class="metric-val" id="m-counted">¥218,500</div>
+          <div class="metric-sub">有效消费</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">距达标</div>
+          <div class="metric-val" id="m-gap" style="font-size:20px">¥31,500</div>
+          <div class="metric-sub">按100%累积</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">最近消费</div>
+        <div class="section-more" onclick="switchTab('records')">全部 →</div>
+      </div>
+      <div id="home-records"></div>
+    </div>
+
+    <!-- SCAN -->
+    <div id="page-scan" class="page">
+      <div class="scan-page">
+        <!-- Upload card -->
+        <div class="upload-card">
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div class="upload-circle">
+              <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <div class="upload-text">拍照 / 选择小票</div>
+            <div class="upload-sub">支持从相册选取或直接拍摄</div>
+          </div>
+          <div class="preview-section" id="preview-section">
+            <img id="preview-img" src="" alt="小票预览" class="preview-img">
+            <div class="preview-actions">
+              <button class="preview-action-btn" onclick="resetScan()">重新选择</button>
+              <button class="preview-action-btn" onclick="analyzeImage()">开始识别 →</button>
+            </div>
+          </div>
+          <div class="analyzing-section" id="analyzing-section">
+            <div class="spinner"></div>
+            <div class="analyzing-text">正在识别小票...</div>
+            <div class="analyzing-sub">自动提取所有商品与金额</div>
+          </div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event)">
+
+        <!-- Results area -->
+        <div id="scan-results" style="display:none">
+          <!-- Store & date row -->
+          <div class="scan-meta-row">
+            <span class="scan-meta-label">门店</span>
+            <span class="scan-meta-val" id="sr-store-label">—</span>
+            <button class="scan-meta-change" onclick="openStorePicker('record')">更改</button>
+            <input type="hidden" id="r-store">
+          </div>
+          <div class="scan-meta-row">
+            <span class="scan-meta-label">日期</span>
+            <input class="scan-meta-val" id="sr-date" type="date" style="border:none;background:none;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--charcoal);outline:none;padding:0">
+            <span class="scan-meta-label" style="width:auto;font-size:12px;color:var(--light)">SA</span>
+            <select id="sr-sa" style="border:none;background:none;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--mid);outline:none;max-width:90px"><option value="">—</option></select>
+          </div>
+
+          <!-- Item cards -->
+          <div id="item-cards-list"></div>
+
+          <!-- Impact preview -->
+          <div class="impact-bar" id="impact-bar" style="display:none"></div>
+
+          <!-- Save button -->
+          <button class="save-btn" onclick="saveAllItems()">保存全部勾选项</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div id="page-records" class="page">
+      <div class="records-page">
+        <div class="filter-scroll" id="filter-scroll">
+          <button class="filter-chip active" onclick="filterRec('all',this)">全部</button>
+          <button class="filter-chip" onclick="filterRec('包',this)">包</button>
+          <button class="filter-chip" onclick="filterRec('丝巾',this)">丝巾</button>
+          <button class="filter-chip" onclick="filterRec('配饰',this)">配饰</button>
+          <button class="filter-chip" onclick="filterRec('香水',this)">香水</button>
+          <button class="filter-chip" onclick="filterRec('其他',this)">其他</button>
+        </div>
+        <div id="records-list"></div>
+      </div>
+    </div>
+
+    <!-- SA -->
+    <div id="page-sa" class="page">
+      <div class="sa-page">
+        <div id="sa-list"></div>
+      </div>
+      <div class="add-fab" onclick="openSheet('sa-sheet')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+    </div>
+
+    <!-- WISHLIST -->
+    <div id="page-wishlist" class="page">
+      <div class="wish-page">
+        <div id="wish-list"></div>
+      </div>
+      <div class="add-fab" onclick="openSheet('wish-sheet')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+    </div>
+
+  </div><!-- end scroll-body -->
+
+  <!-- BOTTOM TABS -->
+  <nav class="tabbar">
+    <div class="tab-item active" id="tab-home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      首页
+    </div>
+    <div class="tab-item" id="tab-records" onclick="switchTab('records')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      记录
+    </div>
+    <div class="tab-center" id="tab-scan" onclick="switchTab('scan')">
+      <div class="tab-center-btn">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="tab-center-label">录入</div>
+    </div>
+    <div class="tab-item" id="tab-sa" onclick="switchTab('sa')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      SA
+    </div>
+    <div class="tab-item" id="tab-wishlist" onclick="switchTab('wishlist')">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      目标包
+    </div>
+  </nav>
+</div>
+
+<!-- STORE PICKER SHEET -->
+<div class="sheet-overlay" id="store-picker-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="store-picker-title">选择门店</div>
+    <div class="sheet-body" style="padding:0">
+      <div id="store-picker-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TARGET PICKER SHEET -->
+<div class="sheet-overlay" id="target-picker">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">选择主目标</div>
+    <div class="sheet-body">
+      <div id="target-picker-list"></div>
+      <button class="sheet-btn sheet-btn-outline" style="margin-top:16px" onclick="closeSheet('target-picker')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- SA SHEET -->
+<div class="sheet-overlay" id="sa-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">添加 SA</div>
+    <div class="sheet-body">
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">姓名 / 称呼</label><input class="sheet-input" id="sa-name" placeholder="小王"></div>
+        <div class="sheet-field"><label class="sheet-label">所在门店</label><input class="sheet-input" id="sa-store" placeholder="上海恒隆"></div>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">关系级别</label>
+        <select class="sheet-input" id="sa-level"><option>主要 SA</option><option>次要 SA</option><option>了解中</option></select>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">备注</label>
+        <textarea class="sheet-input" id="sa-note" rows="3" style="resize:none" placeholder="沟通风格、生日、偏好..."></textarea>
+      </div>
+      <button class="sheet-btn" onclick="saveSA()">保存</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('sa-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- WISH SHEET -->
+<div class="sheet-overlay" id="wish-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">添加目标商品</div>
+    <div class="sheet-body">
+      <div class="sheet-field" style="display:none"><label class="sheet-label">品牌</label>
+        <select class="sheet-input" id="w-brand" onchange="updateWishTypeOptions('w-type', this.value); updateCatHint('w-cat-hint', this.value)">
+          <option value="Hermès">Hermès 爱马仕</option>
+          <option value="Chanel">Chanel 香奈儿</option>
+          <option value="Rolex">Rolex 劳力士</option>
+          <option value="Patek Philippe">Patek Philippe 百达翡丽</option>
+          <option value="AP">Audemars Piguet 爱彼</option>
+          <option value="其他">其他品牌</option>
+        </select>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">商品类型</label>
+          <select class="sheet-input" id="w-type"></select>
+        </div>
+        <div class="sheet-field"><label class="sheet-label">颜色 / 型号</label><input class="sheet-input" id="w-color" placeholder="金棕 / 黑白格"></div>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">材质 / 表壳</label><input class="sheet-input" id="w-leather" placeholder="Togo / 精钢"></div>
+        <div class="sheet-field"><label class="sheet-label">五金 / 表带</label>
+          <input class="sheet-input" id="w-hw" placeholder="金扣 / 钢链">
+        </div>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">预估价格（元）</label><input class="sheet-input" id="w-price" type="number" inputmode="decimal" placeholder="250000"></div>
+        <div class="sheet-field"><label class="sheet-label">优先级</label>
+          <select class="sheet-input" id="w-pri"><option value="1">1 · 最想要</option><option value="2">2</option><option value="3">3</option><option value="4">备选</option></select>
+        </div>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">申请状态</label>
+        <select class="sheet-input" id="w-status"><option>计划中</option><option>已申请</option><option>等待中</option><option>已到手</option></select>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">攻略门店</label>
+        <div class="store-picker-trigger" id="w-store-display" onclick="openStorePicker('wish')">
+          <span id="w-store-label" style="color:var(--light)">选择门店 →</span>
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--light);fill:none;stroke-width:2;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <input type="hidden" id="w-store">
+      </div>
+      <div id="w-cat-hint" style="font-size:12px;color:var(--mid);background:var(--cream);border-radius:8px;padding:10px 12px;line-height:1.6;margin-top:4px"></div>
+      <button class="sheet-btn" style="margin-top:12px" onclick="saveWish()">保存</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('wish-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MARIO CELEBRATION OVERLAY -->
+<div class="mario-overlay" id="mario-overlay">
+  <div class="mario-stage" id="mario-stage"></div>
+  <div class="mario-text">★ CONGRATULATIONS ★</div>
+  <div class="mario-sub" id="mario-sub">包包到手啦！</div>
+  <div class="mario-score" id="mario-score">+10000</div>
+  <button class="mario-continue-btn" onclick="finishArchive()">▶ CONTINUE</button>
+</div>
+
+<!-- ARCHIVE CONFIRM SHEET -->
+<div class="sheet-overlay" id="archive-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="archive-sheet-title">归档确认</div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.6" id="archive-desc"></div>
+      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--light);margin-bottom:8px">计入此包的消费记录</div>
+      <div id="archive-records-list" style="max-height:300px;overflow-y:auto"></div>
+      <input type="hidden" id="archive-wish-id">
+      <button class="sheet-btn" style="margin-top:16px;background:linear-gradient(135deg,#E8A020,#F0C040);color:#3D2000;font-weight:700" onclick="confirmArchive()">🎉 确认归档</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('archive-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- WISH EDIT SHEET -->
+<div class="sheet-overlay" id="wish-edit-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">编辑目标商品</div>
+    <div class="sheet-body">
+      <input type="hidden" id="we-id">
+      <div class="sheet-field" style="display:none"><label class="sheet-label">品牌</label>
+        <select class="sheet-input" id="we-brand" onchange="updateWishTypeOptions('we-type', this.value); updateCatHint('we-cat-hint', this.value)">
+          <option value="Hermès">Hermès 爱马仕</option>
+          <option value="Chanel">Chanel 香奈儿</option>
+          <option value="Rolex">Rolex 劳力士</option>
+          <option value="Patek Philippe">Patek Philippe 百达翡丽</option>
+          <option value="AP">Audemars Piguet 爱彼</option>
+          <option value="其他">其他品牌</option>
+        </select>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">商品类型</label>
+          <select class="sheet-input" id="we-type"></select>
+        </div>
+        <div class="sheet-field"><label class="sheet-label">颜色 / 型号</label><input class="sheet-input" id="we-color"></div>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">材质 / 表壳</label><input class="sheet-input" id="we-leather"></div>
+        <div class="sheet-field"><label class="sheet-label">五金 / 表带</label>
+          <input class="sheet-input" id="we-hw">
+        </div>
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field"><label class="sheet-label">预估价格（元）</label><input class="sheet-input" id="we-price" type="number" inputmode="decimal"></div>
+        <div class="sheet-field"><label class="sheet-label">优先级</label>
+          <select class="sheet-input" id="we-pri"><option value="1">1 · 最想要</option><option value="2">2</option><option value="3">3</option><option value="4">备选</option></select>
+        </div>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">申请状态</label>
+        <select class="sheet-input" id="we-status"><option>计划中</option><option>已申请</option><option>等待中</option><option>已到手</option></select>
+      </div>
+      <div class="sheet-field"><label class="sheet-label">攻略门店</label>
+        <div class="store-picker-trigger" id="we-store-display" onclick="openStorePicker('edit')">
+          <span id="we-store-label" style="color:var(--light)">选择门店 →</span>
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--light);fill:none;stroke-width:2;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <input type="hidden" id="we-store">
+      </div>
+      <div id="we-cat-hint" style="font-size:12px;color:var(--mid);background:var(--cream);border-radius:8px;padding:10px 12px;line-height:1.6;margin-top:4px"></div>
+      <button class="sheet-btn" style="margin-top:12px" onclick="saveWishEdit()">保存修改</button>
+      <button class="sheet-btn sheet-btn-outline" style="color:#C0392B;border-color:rgba(192,57,43,0.3)" onclick="deleteWish()">删除此目标</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('wish-edit-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TARGET_PRICE = 250000;
+const PRIMARY_TARGET = 'Birkin 25 · 金棕 Togo · 金扣';
+const CAT_EMOJI = { '包':'👜','丝巾':'🧣','配饰':'💍','香水':'🌸','成衣':'👗','家居':'🏺','其他':'🛍' };
+const CAT_BADGE = { '包':'badge-bag','丝巾':'badge-scarf','配饰':'badge-acc','香水':'badge-perf','成衣':'badge-acc','家居':'badge-other','其他':'badge-other' };
+
+// STATE — load from localStorage
+let state = JSON.parse(localStorage.getItem('hermes_state') || 'null') || {
+  stores: [
+    { id:'st1', name:'上海恒隆广场店', city:'上海' },
+    { id:'st2', name:'北京国贸店', city:'北京' },
+  ],
+  records: [
+    { id:'r1', item:'Picotin 18 · 黑色 Clémence', cat:'包', storeId:'st1', store:'上海恒隆广场店', date:'2025-03-10', amount:34000, ratio:true, sa:'小王', note:'' },
+    { id:'r2', item:'Carre 90 真丝方巾', cat:'丝巾', storeId:'st1', store:'上海恒隆广场店', date:'2025-04-15', amount:6400, ratio:true, sa:'小王', note:'SA 提到下月有新货' },
+    { id:'r3', item:"Terre d'Hermès 100ml", cat:'香水', storeId:'st1', store:'上海恒隆广场店', date:'2025-04-15', amount:1850, ratio:false, sa:'小王', note:'' },
+  ],
+  sas: [
+    { id:'s1', name:'小王', store:'上海恒隆广场店', level:'主要 SA', note:'偏好直接沟通，对 Birkin / Kelly 出货有一定话语权，需维持消费频率。生日 5 月初。' },
+    { id:'s2', name:'张经理', store:'北京国贸店', level:'次要 SA', note:'风格较保守，适合通过礼物维系关系。对 Constance 库存了解较多。' },
+  ],
+  wishlist: [
+    { id:'w1', brand:'Hermès', type:'Birkin 25', color:'金棕', leather:'Togo', hw:'金扣 GHW', price:250000, priority:1, status:'等待中', storeId:'st1' },
+    { id:'w2', brand:'Hermès', type:'Kelly 28', color:'黑色', leather:'Box', hw:'银扣 PHW', price:220000, priority:2, status:'计划中', storeId:'st2' },
+    { id:'w3', brand:'Hermès', type:'Evelyne PM', color:'大象灰', leather:'Clémence', hw:'银扣 PHW', price:48000, priority:3, status:'计划中', storeId:'st1' },
+  ],
+  visits: 23,
+  primaryWishId: 'w1'
+};
+
+let currentImageBase64 = null;
+let currentImageType = null;
+
+function save() { localStorage.setItem('hermes_state', JSON.stringify(state)); }
+
+// Migration: ensure stores array exists for users with old saved state
+if (!state.stores) {
+  state.stores = [
+    { id:'st1', name:'上海恒隆广场店', city:'上海' },
+    { id:'st2', name:'北京国贸店', city:'北京' },
+  ];
+  state.records = state.records.map(r => ({
+    ...r,
+    storeId: r.storeId || (r.store?.includes('恒隆') ? 'st1' : r.store?.includes('国贸') ? 'st2' : 'st1')
+  }));
+  state.wishlist = state.wishlist.map(w => ({ ...w, storeId: w.storeId || 'st1' }));
+  save();
+}
+// Migration: add brand field to wishlist items that don't have it
+if (state.wishlist.some(w => !w.brand)) {
+  state.wishlist = state.wishlist.map(w => ({ ...w, brand: w.brand || 'Hermès' }));
+  save();
+}
+// Migration: ensure archived array exists
+if (!state.archived) { state.archived = []; save(); }
+
+function calcSpent() { return state.records.filter(r=>r.ratio).reduce((s,r)=>s+r.amount,0); }
+
+function calcSpentForWish(wish) {
+  if (!wish) return 0;
+  return state.records
+    .filter(r => r.ratio && (wish.storeId ? r.storeId === wish.storeId : true))
+    .reduce((s,r) => s + r.amount, 0);
+}
+
+function getStoreName(storeId) {
+  const s = state.stores.find(s => s.id === storeId);
+  return s ? s.name : '未指定门店';
+}
+
+function getPrimaryWish() {
+  return state.wishlist.find(w => w.id === state.primaryWishId) || state.wishlist[0] || null;
+}
+
+function setPrimaryWish(id) {
+  state.primaryWishId = id;
+  save();
+  updateDashboard();
+  renderWishlist();
+  closeSheet('target-picker');
+  showToast('主目标已切换');
+}
+
+function renderTargetPicker() {
+  document.getElementById('target-picker-list').innerHTML = state.wishlist.map(w => {
+    const spent = calcSpentForWish(w);
+    const ratio = Math.min(spent / w.price * 100, 100);
+    const color = ratio >= 100 ? '#2D6A4F' : ratio >= 80 ? '#BA7517' : '#C0392B';
+    const isActive = w.id === state.primaryWishId;
+    return `
+    <div class="target-item" onclick="setPrimaryWish('${w.id}')">
+      <div class="target-item-check ${isActive ? 'active' : ''}"></div>
+      <div>
+        <div class="target-item-name">${w.type} · ${w.color}</div>
+        <div class="target-item-detail">${getStoreName(w.storeId)} · ¥${w.price.toLocaleString()}</div>
+      </div>
+      <div class="target-item-ratio" style="color:${color}">${ratio.toFixed(0)}%</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--light);font-size:13px;padding:20px 0;text-align:center">还没有添加目标包款</div>';
+}
+
+function getAdvice(ratio) {
+  if (ratio < 50) return {
+    cls: 'advice-low',
+    icon: '📋',
+    title: '累积尚早，保持节奏即可',
+    text: '目前累积还不足，无需刻意加快消费频率。按正常需求购买就好，不必为了累积而买不需要的东西。',
+    action: null
+  };
+  if (ratio < 80) return {
+    cls: 'advice-low',
+    icon: '📈',
+    title: '稳步推进，不要超前消费',
+    text: `已累积 ${ratio.toFixed(0)}%，进展正常。继续保持现有节奏，无需提前透支或冲量，过度消费并不会加快拿包速度。`,
+    action: null
+  };
+  if (ratio < 100) return {
+    cls: 'advice-mid',
+    icon: '✨',
+    title: '累积已达 80%，可以开口了',
+    text: '现在是向 SA 表达意向的好时机。不需要再增加消费，接下来靠沟通推进，而不是靠钱堆。',
+    action: null
+  };
+  if (ratio < 130) return {
+    cls: 'advice-high',
+    icon: '🎯',
+    title: '累积已达标，请停止消费',
+    text: '累积已充分，继续消费不会提升成功概率。现在该做的是推进申请，而不是继续花钱。',
+    action: null
+  };
+  return {
+    cls: 'advice-over',
+    icon: '🛑',
+    title: '累积严重超标，立即停止',
+    text: `累积已超过 ${ratio.toFixed(0)}%，远超所需。继续消费只是在损失金钱，对拿包毫无帮助。若长时间没有结果，问题不在于消费不够。`,
+    action: null
+  };
+}
+
+function updateDashboard() {
+  const primary = getPrimaryWish();
+  const spent = calcSpentForWish(primary);
+  const totalSpent = calcSpent();
+  const total = state.records.reduce((s,r)=>s+r.amount,0);
+  const targetPrice = primary ? primary.price : 250000;
+  const ratio = spent / targetPrice * 100;
+  const gap = Math.max(targetPrice - spent, 0);
+  const pctStr = ratio.toFixed(1) + '%';
+  const color = ratio >= 100 ? '#2D6A4F' : ratio >= 80 ? '#BA7517' : '#C0392B';
+
+  document.getElementById('hdr-ratio').textContent = pctStr;
+  document.getElementById('hero-pct').textContent = pctStr;
+  document.getElementById('hero-target').textContent = primary
+    ? `${primary.type} · ${primary.color} · ${getStoreName(primary.storeId)}`
+    : '请设置目标包';
+  document.getElementById('hero-spent').textContent = spent.toLocaleString();
+  document.getElementById('hero-gap').textContent = gap > 0 ? '¥' + gap.toLocaleString() : '已达标 ✓';
+  const bar = document.getElementById('hero-bar');
+  bar.style.width = Math.min(ratio, 100) + '%';
+  bar.style.background = color;
+  document.getElementById('m-total').textContent = '¥' + total.toLocaleString();
+  document.getElementById('m-visits').textContent = state.visits;
+  document.getElementById('m-counted').textContent = '¥' + spent.toLocaleString();
+  document.getElementById('m-gap').textContent = gap > 0 ? '¥' + gap.toLocaleString() : '已达标';
+
+  const adv = getAdvice(ratio);
+  document.getElementById('advice-card').innerHTML = `
+    <div class="advice-card ${adv.cls}">
+      <div class="advice-icon">${adv.icon}</div>
+      <div class="advice-body">
+        <div class="advice-title">${adv.title}</div>
+        <div class="advice-text">${adv.text}</div>
+      </div>
+    </div>`;
+}
+
+function renderHomeRecords() {
+  const recent = [...state.records].reverse().slice(0,3);
+  const spent = calcSpent();
+  document.getElementById('home-records').innerHTML = recent.length ? recent.map(r => `
+    <div class="record-card">
+      <div class="record-cat-dot" style="background:var(--cream-dark)">${CAT_EMOJI[r.cat]||'🛍'}</div>
+      <div class="record-info">
+        <div class="record-name">${r.item}</div>
+        <div class="record-meta">${r.date} · ${r.store}</div>
+      </div>
+      <div class="record-right">
+        <div class="record-amount">¥${r.amount.toLocaleString()}</div>
+        <div class="record-contrib ${r.ratio?'':' no'}">${r.ratio ? '+' + (r.amount/TARGET_PRICE*100).toFixed(1) + '%' : '不计入'}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有消费记录</div></div>';
+}
+
+function renderRecords(filter) {
+  const data = (!filter || filter === 'all') ? state.records : state.records.filter(r=>r.cat===filter);
+  const sorted = [...data].reverse();
+  document.getElementById('records-list').innerHTML = sorted.length ? sorted.map(r => `
+    <div class="record-card">
+      <div class="record-cat-dot" style="background:var(--cream-dark)">${CAT_EMOJI[r.cat]||'🛍'}</div>
+      <div class="record-info">
+        <div class="record-name">${r.item}</div>
+        <div class="record-meta">${r.date} · ${r.store}</div>
+      </div>
+      <div class="record-right">
+        <div class="record-amount">¥${r.amount.toLocaleString()}</div>
+        <div class="record-contrib ${r.ratio?'':' no'}">${r.ratio ? '+' + (r.amount/TARGET_PRICE*100).toFixed(1)+'%' : '不计入'}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">没有相关记录</div></div>';
+}
+
+function filterRec(cat, el) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderRecords(cat);
+}
+
+function renderSA() {
+  document.getElementById('sa-list').innerHTML = state.sas.length ? state.sas.map(s => {
+    const visits = state.records.filter(r=>r.sa===s.name).length;
+    const last = state.records.filter(r=>r.sa===s.name).slice(-1)[0];
+    return `
+    <div class="sa-card">
+      <div class="sa-top">
+        <div class="avatar">${s.name[0]}</div>
+        <div style="flex:1">
+          <div class="sa-name">${s.name}</div>
+          <div class="sa-store">${s.store} · ${s.level}</div>
+        </div>
+      </div>
+      <div class="sa-stats">
+        <div><div class="sa-stat-label">服务次数</div><div class="sa-stat-val">${visits}</div></div>
+        <div><div class="sa-stat-label">上次拜访</div><div class="sa-stat-val" style="font-size:13px">${last?last.date.slice(5):'—'}</div></div>
+        <div><div class="sa-stat-label">级别</div><div class="sa-stat-val" style="font-size:12px">${s.level==='主要 SA'?'主要':'次要'}</div></div>
+      </div>
+      ${s.note ? `<div class="sa-note">${s.note}</div>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有添加 SA</div></div>';
+}
+
+function renderWishlist() {
+  const sorted = [...state.wishlist].sort((a,b)=>a.priority-b.priority);
+  const statusCls = {'等待中':'status-waiting','计划中':'status-plan','已到手':'status-done','已申请':'status-waiting'};
+  document.getElementById('wish-list').innerHTML = sorted.length ? sorted.map(w => {
+    const isPrimary = w.id === state.primaryWishId;
+    const spent = calcSpentForWish(w);
+    const ratio = Math.min(spent / w.price * 100, 100);
+    const color = ratio >= 100 ? '#2D6A4F' : ratio >= 80 ? '#BA7517' : '#C0392B';
+    return `
+    <div class="wish-card">
+      <div class="wish-header">
+        <div class="wish-rank-badge">${w.priority}</div>
+        <div class="wish-title">${w.type} · ${w.color}</div>
+        ${isPrimary
+          ? `<div class="primary-badge">⭐ 主目标</div>`
+          : `<div class="wish-status-badge ${statusCls[w.status]||'status-plan'}">${w.status}</div>`}
+      </div>
+      <div class="wish-detail">${w.leather} · ${w.hw} · ${getStoreName(w.storeId)} · 约 ¥${w.price.toLocaleString()}</div>
+      <div class="wish-ratio-section">
+        <div class="wish-ratio-row">
+          <span class="wish-ratio-label">累积进度（仅该门店）</span>
+          <span class="wish-ratio-pct" style="color:${color}">${ratio.toFixed(1)}%</span>
+        </div>
+        <div class="ratio-bar-bg"><div class="ratio-bar-fill" style="width:${ratio}%;background:${color}"></div></div>
+        <div class="wish-price">已累积 ¥${spent.toLocaleString()} / 目标 ¥${w.price.toLocaleString()}</div>
+      </div>
+      ${!isPrimary ? `<button class="set-primary-btn" onclick="setPrimaryWish('${w.id}')">设为主目标</button>` : ''}
+      <button class="set-primary-btn" style="margin-top:8px;color:var(--gold);border-color:rgba(184,151,74,0.3)" onclick="editWish('${w.id}')">编辑信息</button>
+      ${w.status === '已到手' ? `<button class="archive-btn" onclick="startArchive('${w.id}')">🎉 拿包归档</button>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有添加目标包款</div></div>';
+}
+
+function updateSASelect() {
+  const sel = document.getElementById('r-sa');
+  sel.innerHTML = '<option value="">— 选择 SA —</option>' + state.sas.map(s=>`<option>${s.name}</option>`).join('');
+}
+
+function populateStoreSelect(selId, selectedId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = state.stores.map(s =>
+    `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${s.name}</option>`
+  ).join('') + `<option value="__new__">＋ 添加新门店</option>`;
+}
+
+// ── 品牌配置：商品类型 + 品类规则说明 ─────────────────────────────
+const BRAND_CONFIG = {
+  'Hermès': {
+    types: ['Birkin 25','Birkin 30','Birkin 35','Kelly 25','Kelly 28','Kelly 32','Constance 18','Constance 24','Picotin 18','Evelyne PM','Lindy 26','其他'],
+    catHint: '💡 爱马仕配货规则：丝巾、配饰、皮带、小皮具通常计入配货比；香水、鞋履一般不计入。具体以 SA 确认为准。',
+  },
+  'Chanel': {
+    types: ['Classic Flap Mini','Classic Flap Small','Classic Flap Medium','Classic Flap Jumbo','2.55','Boy Bag Small','Boy Bag Medium','Coco Handle','19 Bag','WOC','其他'],
+    catHint: '💡 Chanel 配货规则：成衣、配饰、珠宝通常有助于建立客户档案；化妆品消费贡献有限。具体以 SA 沟通为准。',
+  },
+  'Rolex': {
+    types: ['Datejust 36','Datejust 41','Submariner','GMT-Master II','Daytona','Day-Date 36','Day-Date 40','Explorer','Yacht-Master','其他'],
+    catHint: '💡 劳力士配货规则：通常无固定配货比概念，主要看与 AD（授权经销商）的长期消费关系和 VIP 评级。建议保持稳定购买记录。',
+  },
+  'Patek Philippe': {
+    types: ['Nautilus 5711','Nautilus 5726','Aquanaut 5167','Calatrava','Complications','Grand Complications','其他'],
+    catHint: '💡 百达翡丽配货规则：稀缺款（如 Nautilus）通常需要在同一 AD 建立长期消费历史，购买入门款表是常见策略。',
+  },
+  'AP': {
+    types: ['Royal Oak 15500','Royal Oak 15202','Royal Oak Offshore','Royal Oak Concept','Code 11.59','其他'],
+    catHint: '💡 爱彼配货规则：Royal Oak 钢款等热门款需要 AD 关系积累，购买其他系列或珠宝腕表有助于建立购买资格。',
+  },
+  '其他': {
+    types: ['其他'],
+    catHint: '💡 请根据品牌具体规则判断哪些消费计入配货累积。',
+  },
+};
+
+function updateWishTypeOptions(selectId, brand) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const config = BRAND_CONFIG[brand] || BRAND_CONFIG['其他'];
+  sel.innerHTML = config.types.map(t => `<option>${t}</option>`).join('');
+}
+
+function updateCatHint(hintId, brand) {
+  const el = document.getElementById(hintId);
+  if (!el) return;
+  const config = BRAND_CONFIG[brand] || BRAND_CONFIG['其他'];
+  el.textContent = config.catHint;
+  el.style.display = config.catHint ? 'block' : 'none';
+}
+const STORE_DB = {
+  'Hermès': {
+    '中国大陆': {
+    '北京': [
+      '爱马仕中国北京SKP',
+      '爱马仕中国北京国贸商城',
+      '爱马仕中国北京王府半岛酒店',
+      '爱马仕中国北京首都机场T3',
+      '爱马仕中国北京大兴国际机场',
+    ],
+    '上海': [
+      '爱马仕中国之家',
+      '爱马仕中国国金中心',
+      '爱马仕中国上海恒隆广场',
+      '爱马仕中国上海前滩太古里',
+      '爱马仕中国上海虹桥机场',
+    ],
+    '广州': ['爱马仕中国广州太古汇'],
+    '深圳': ['爱马仕中国深圳万象城', '爱马仕中国深圳湾万象城'],
+    '成都': ['爱马仕中国成都远洋太古里', '爱马仕中国成都SKP'],
+    '杭州': ['爱马仕中国杭州湖滨银泰', '爱马仕中国杭州大厦'],
+    '南京': ['爱马仕中国南京德基广场'],
+    '重庆': ['爱马仕中国重庆万象城'],
+    '武汉': ['爱马仕中国武汉武汉天地66'],
+    '西安': ['爱马仕中国西安SKP'],
+    '沈阳': ['爱马仕中国沈阳万象城'],
+    '哈尔滨': ['爱马仕中国哈尔滨卓展购物中心'],
+    '大连': ['爱马仕中国大连时代广场'],
+    '青岛': ['爱马仕中国青岛海信广场'],
+    '厦门': ['爱马仕中国厦门万象城'],
+    '宁波': ['爱马仕宁波阪急百货专卖店'],
+    '苏州': ['爱马仕中国苏州美罗商城'],
+    '无锡': ['爱马仕中国无锡恒隆广场'],
+    '昆明': ['爱马仕中国昆明金格百货'],
+    '郑州': ['爱马仕中国郑州丹尼斯大卫城'],
+    '天津': ['爱马仕中国天津万象城'],
+    '长沙': ['爱马仕中国长沙国金中心'],
+  },
+  '香港': {
+    '香港': [
+      '爱马仕香港圆方广场',
+      '爱马仕香港海港城',
+      '爱马仕香港置地太子大厦',
+      '爱马仕香港太古广场',
+      '爱马仕香港利园',
+      '爱马仕香港时代广场Lane Crawford',
+    ],
+  },
+  '澳门': {
+    '澳门': ['爱马仕澳门四季名店'],
+  },
+  '台湾': {
+    '台北': [
+      '爱马仕台北101',
+      '爱马仕台北远东百货信义店',
+      '爱马仕台北新光三越信义A9',
+      '爱马仕台北微风广场',
+    ],
+    '高雄': ['爱马仕高雄汉神巨蛋'],
+    '台中': ['爱马仕台中新光三越'],
+  },
+  '日本': {
+    '东京': [
+      '爱马仕东京银座店',
+      '爱马仕东京表参道店',
+      '爱马仕东京涩谷店',
+      '爱马仕东京新宿伊势丹店',
+      '爱马仕东京羽田机场店',
+    ],
+    '大阪': ['爱马仕大阪梅田店', '爱马仕大阪心斋桥店', '爱马仕大阪关西机场店'],
+    '名古屋': ['爱马仕名古屋店'],
+    '福冈': ['爱马仕福冈店'],
+    '京都': ['爱马仕京都店'],
+    '神户': ['爱马仕神户店'],
+    '札幌': ['爱马仕札幌店'],
+  },
+  '韩国': {
+    '首尔': [
+      '爱马仕首尔新罗百货店',
+      '爱马仕首尔现代COEX店',
+      '爱马仕首尔现代板桥店',
+      '爱马仕首尔乐天百货本店',
+      '爱马仕首尔清潭店',
+    ],
+    '釜山': ['爱马仕釜山新世界百货店'],
+  },
+  '新加坡': {
+    '新加坡': [
+      '爱马仕新加坡乌节路店',
+      '爱马仕新加坡高岛屋店',
+      '爱马仕新加坡樟宜机场T1',
+      '爱马仕新加坡樟宜机场T2',
+      '爱马仕新加坡樟宜机场T3',
+    ],
+  },
+  '泰国': {
+    '曼谷': ['爱马仕曼谷Emquartier店', '爱马仕曼谷Siam Paragon店'],
+  },
+  '马来西亚': {
+    '吉隆坡': ['爱马仕吉隆坡Pavilion店', '爱马仕吉隆坡KLCC店'],
+  },
+  '印度尼西亚': {
+    '雅加达': ['爱马仕雅加达Plaza Indonesia店', '爱马仕雅加达Grand Indonesia店'],
+  },
+  '澳大利亚': {
+    '悉尼': ['爱马仕悉尼店'],
+    '墨尔本': ['爱马仕墨尔本店'],
+  },
+  '阿联酋': {
+    '迪拜': ['爱马仕迪拜购物中心店', '爱马仕迪拜Mall of the Emirates店'],
+    '阿布扎比': ['爱马仕阿布扎比Galleria店'],
+  },
+  '法国': {
+    '巴黎': [
+      '爱马仕巴黎圣特娜福宝大道24号总店',
+      '爱马仕巴黎塞夫勒店',
+      '爱马仕巴黎戴高乐机场店',
+    ],
+  },
+  '英国': {
+    '伦敦': ['爱马仕伦敦新邦德街店', '爱马仕伦敦斯隆街店'],
+  },
+  '意大利': {
+    '米兰': ['爱马仕米兰蒙特拿破仑大街店'],
+    '罗马': ['爱马仕罗马孔多提街店'],
+  },
+  '美国': {
+    '纽约': ['爱马仕纽约麦迪逊大道店', '爱马仕纽约华尔街店'],
+    '洛杉矶': ['爱马仕洛杉矶比佛利山庄店'],
+    '旧金山': ['爱马仕旧金山店'],
+    '拉斯维加斯': ['爱马仕拉斯维加斯百乐宫店'],
+  },
+  },
+  'Chanel': {
+    '中国大陆': {
+      '北京': ['香奈儿北京SKP', '香奈儿北京国贸'],
+      '上海': ['香奈儿上海恒隆广场', '香奈儿上海国金中心', '香奈儿上海外滩源'],
+      '广州': ['香奈儿广州太古汇'],
+      '深圳': ['香奈儿深圳万象城'],
+      '成都': ['香奈儿成都远洋太古里'],
+    },
+    '香港': { '香港': ['香奈儿香港半岛酒店', '香奈儿香港海港城', '香奈儿香港置地广场'] },
+  },
+  'Rolex': {
+    '中国大陆': {
+      '北京': ['劳力士北京SKP', '劳力士北京新光天地'],
+      '上海': ['劳力士上海恒隆广场', '劳力士上海国金中心'],
+      '广州': ['劳力士广州太古汇'],
+    },
+  },
+  'Patek Philippe': {
+    '中国大陆': {
+      '北京': ['百达翡丽北京专卖店'],
+      '上海': ['百达翡丽上海专卖店'],
+      '成都': ['百达翡丽成都专卖店'],
+    },
+  },
+  'AP': {
+    '中国大陆': {
+      '北京': ['爱彼北京专卖店'],
+      '上海': ['爱彼上海专卖店'],
+    },
+  },
+};
+
+function getStoreDBForBrand(brand) {
+  return STORE_DB[brand] || STORE_DB['Hermès'];
+}
+
+let storePickerBrand = 'Hermès';
+let storePickerTarget = 'wish'; // 'wish' | 'record' | 'edit'
+
+function openStorePicker(target) {
+  storePickerTarget = target;
+  const inputId = target === 'wish' ? 'w-store' : target === 'edit' ? 'we-store' : 'r-store';
+  const currentId = document.getElementById(inputId).value;
+  // Detect brand from current form
+  const brandEl = document.getElementById(
+    target === 'wish' ? 'w-brand' : target === 'edit' ? 'we-brand' : null
+  );
+  storePickerBrand = brandEl ? brandEl.value : 'Hermès';
+  renderStorePicker(currentId);
+  openSheet('store-picker-sheet');
+}
+
+function renderStorePicker(selectedStoreId) {
+  const selectedStore = state.stores.find(s => s.id === selectedStoreId);
+  const selectedName = selectedStore ? selectedStore.name : '';
+  const storeMap = getStoreDBForBrand(storePickerBrand);
+
+  let html = '';
+  for (const [country, cities] of Object.entries(storeMap)) {
+    html += `<div class="sp-section">
+      <div class="sp-section-header" onclick="toggleSPSection(this)">
+        <span>${country}</span>
+        <span class="sp-section-arrow">›</span>
+      </div>
+      <div class="sp-cities">`;
+    for (const [city, stores] of Object.entries(cities)) {
+      html += `<div class="sp-city">
+        <div class="sp-city-header" onclick="toggleSPCity(this)">
+          <span>${city}</span>
+          <span class="sp-section-arrow">›</span>
+        </div>
+        <div class="sp-stores">`;
+      for (const store of stores) {
+        const isSelected = store === selectedName;
+        html += `<div class="sp-store-item ${isSelected ? 'selected' : ''}" onclick="selectStore('${store.replace(/'/g,"\\'")}')">
+          ${isSelected ? '✓ ' : ''}${store}
+        </div>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Custom input at bottom
+  html += `<div class="sp-custom">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--light);margin-bottom:8px">其他门店（手动输入）</div>
+    <input class="sp-custom-input" id="sp-custom-input" placeholder="输入门店名称" value="${selectedName && !isKnownStore(selectedName) ? selectedName : ''}">
+    <button class="sp-custom-btn" onclick="selectCustomStore()">确认使用此门店</button>
+  </div>`;
+
+  document.getElementById('store-picker-content').innerHTML = html;
+
+  // Auto-expand to selected country/city
+  if (selectedName) {
+    autoExpandToStore(selectedName);
+  }
+}
+
+function isKnownStore(name) {
+  return Object.values(STORE_DB).some(brandStores =>
+    Object.values(brandStores).some(cities =>
+      Object.values(cities).some(stores => stores.includes(name))
+    )
+  );
+}
+
+function autoExpandToStore(storeName) {
+  const storeMap = getStoreDBForBrand(storePickerBrand);
+  for (const [country, cities] of Object.entries(storeMap)) {
+    for (const [city, stores] of Object.entries(cities)) {
+      if (stores.includes(storeName)) {
+        document.querySelectorAll('.sp-section-header').forEach(h => {
+          if (h.querySelector('span')?.textContent === country) {
+            h.querySelector('.sp-section-arrow').classList.add('open');
+            h.nextElementSibling.classList.add('open');
+            h.nextElementSibling.querySelectorAll('.sp-city-header').forEach(ch => {
+              if (ch.querySelector('span')?.textContent === city) {
+                ch.querySelector('.sp-section-arrow').classList.add('open');
+                ch.nextElementSibling.classList.add('open');
+              }
+            });
+          }
+        });
+        return;
+      }
+    }
+  }
+}
+
+function toggleSPSection(header) {
+  const arrow = header.querySelector('.sp-section-arrow');
+  const content = header.nextElementSibling;
+  arrow.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+function toggleSPCity(header) {
+  const arrow = header.querySelector('.sp-section-arrow');
+  const content = header.nextElementSibling;
+  arrow.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+function selectStore(storeName) {
+  applyStoreSelection(storeName);
+}
+
+function selectCustomStore() {
+  const name = document.getElementById('sp-custom-input').value.trim();
+  if (!name) { showToast('请输入门店名称'); return; }
+  applyStoreSelection(name);
+}
+
+function applyStoreSelection(storeName) {
+  let store = state.stores.find(s => s.name === storeName);
+  if (!store) {
+    store = { id: 'st' + Date.now(), name: storeName, city: '' };
+    state.stores.push(store);
+    save();
+  }
+
+  const inputId = storePickerTarget === 'wish' ? 'w-store' : storePickerTarget === 'edit' ? 'we-store' : 'r-store';
+  const labelId = storePickerTarget === 'wish' ? 'w-store-label' : storePickerTarget === 'edit' ? 'we-store-label' : 'sr-store-label';
+  document.getElementById(inputId).value = store.id;
+  const labelEl = document.getElementById(labelId);
+  if (labelEl) { labelEl.textContent = storeName; labelEl.style.color = 'var(--charcoal)'; }
+
+  closeSheet('store-picker-sheet');
+  if (storePickerTarget === 'record') updateImpact();
+  showToast('门店已选择');
+}
+
+function editWish(id) {
+  const w = state.wishlist.find(w => w.id === id);
+  if (!w) return;
+  document.getElementById('we-id').value = id;
+  const brand = w.brand || 'Hermès';
+  document.getElementById('we-brand').value = brand;
+  updateWishTypeOptions('we-type', brand);
+  updateCatHint('we-cat-hint', brand);
+  const types = (BRAND_CONFIG[brand] || BRAND_CONFIG['其他']).types;
+  const typeIdx = types.indexOf(w.type);
+  document.getElementById('we-type').selectedIndex = Math.max(typeIdx, 0);
+  document.getElementById('we-color').value = w.color || '';
+  document.getElementById('we-leather').value = w.leather || '';
+  document.getElementById('we-hw').value = w.hw || '';
+  document.getElementById('we-price').value = w.price || '';
+  document.getElementById('we-pri').value = w.priority || 1;
+  const statuses = ['计划中','已申请','等待中','已到手'];
+  document.getElementById('we-status').selectedIndex = Math.max(statuses.indexOf(w.status), 0);
+  document.getElementById('we-store').value = w.storeId || '';
+  const storeName = getStoreName(w.storeId);
+  document.getElementById('we-store-label').textContent = storeName || '选择门店 →';
+  document.getElementById('we-store-label').style.color = storeName ? 'var(--charcoal)' : 'var(--light)';
+  openSheet('wish-edit-sheet');
+}
+
+function saveWishEdit() {
+  const id = document.getElementById('we-id').value;
+  const idx = state.wishlist.findIndex(w => w.id === id);
+  if (idx === -1) return;
+  const price = parseFloat(document.getElementById('we-price').value) || 0;
+  if (!price) { showToast('请填写预估价格'); return; }
+  state.wishlist[idx] = {
+    ...state.wishlist[idx],
+    brand: document.getElementById('we-brand').value,
+    type: document.getElementById('we-type').value,
+    color: document.getElementById('we-color').value,
+    leather: document.getElementById('we-leather').value,
+    hw: document.getElementById('we-hw').value,
+    price,
+    priority: parseInt(document.getElementById('we-pri').value),
+    status: document.getElementById('we-status').value,
+    storeId: document.getElementById('we-store').value,
+  };
+  save();
+  updateDashboard();
+  renderWishlist();
+  closeSheet('wish-edit-sheet');
+  showToast('目标商品已更新');
+}
+
+function deleteWish() {
+  const id = document.getElementById('we-id').value;
+  const w = state.wishlist.find(w => w.id === id);
+  if (!w) return;
+  if (!confirm(`确认删除「${w.brand ? w.brand + ' ' : ''}${w.type} · ${w.color}」？`)) return;
+  state.wishlist = state.wishlist.filter(w => w.id !== id);
+  if (state.primaryWishId === id) {
+    state.primaryWishId = state.wishlist[0]?.id || null;
+  }
+  save();
+  updateDashboard();
+  renderWishlist();
+  closeSheet('wish-edit-sheet');
+  showToast('目标商品已删除');
+}
+
+// ── ARCHIVE FLOW ──────────────────────────────────────────────────
+let archiveRecordSelections = {}; // recordId -> bool
+
+function startArchive(wishId) {
+  const w = state.wishlist.find(w => w.id === wishId);
+  if (!w) return;
+
+  document.getElementById('archive-wish-id').value = wishId;
+  document.getElementById('archive-sheet-title').textContent = `归档：${w.type} · ${w.color}`;
+  document.getElementById('archive-desc').textContent =
+    `这个目标包的相关消费记录将被归档。请确认哪些消费计入这个包，默认勾选该门店的所有消费记录。`;
+
+  // Default select all records from same store
+  archiveRecordSelections = {};
+  const relevant = state.records.filter(r => r.storeId === w.storeId);
+  relevant.forEach(r => { archiveRecordSelections[r.id] = true; });
+
+  renderArchiveRecords(w);
+  openSheet('archive-sheet');
+}
+
+function renderArchiveRecords(w) {
+  const relevant = state.records.filter(r => r.storeId === w.storeId);
+  if (!relevant.length) {
+    document.getElementById('archive-records-list').innerHTML =
+      '<div style="color:var(--light);font-size:13px;padding:12px 0">该门店暂无消费记录</div>';
+    return;
+  }
+  document.getElementById('archive-records-list').innerHTML = relevant.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--cream-dark)">
+      <div class="item-check ${archiveRecordSelections[r.id]?'on':''}" onclick="toggleArchiveRecord('${r.id}','${w.id}')" style="flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.item}</div>
+        <div style="font-size:11px;color:var(--light);margin-top:1px">${r.date} · ${r.cat}</div>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--charcoal);flex-shrink:0">¥${r.amount.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function toggleArchiveRecord(recordId, wishId) {
+  archiveRecordSelections[recordId] = !archiveRecordSelections[recordId];
+  const w = state.wishlist.find(w => w.id === wishId);
+  if (w) renderArchiveRecords(w);
+}
+
+function confirmArchive() {
+  const wishId = document.getElementById('archive-wish-id').value;
+  const w = state.wishlist.find(w => w.id === wishId);
+  if (!w) return;
+
+  // Init archived array if needed
+  if (!state.archived) state.archived = [];
+
+  // Move selected records to archived
+  const selectedIds = Object.entries(archiveRecordSelections)
+    .filter(([,v]) => v).map(([k]) => k);
+
+  const archivedRecords = state.records.filter(r => selectedIds.includes(r.id));
+  state.records = state.records.filter(r => !selectedIds.includes(r.id));
+
+  // Archive the wish
+  state.archived.push({
+    ...w,
+    archivedAt: new Date().toISOString().slice(0,10),
+    archivedRecords,
+  });
+  state.wishlist = state.wishlist.filter(ww => ww.id !== wishId);
+
+  // If was primary, switch to first remaining
+  if (state.primaryWishId === wishId) {
+    state.primaryWishId = state.wishlist[0]?.id || null;
+  }
+
+  save();
+  closeSheet('archive-sheet');
+
+  // Play Mario!
+  const totalSpent = archivedRecords.reduce((s,r) => s+r.amount, 0);
+  playMarioAnimation(w, totalSpent);
+}
+
+function playMarioAnimation(w, totalSpent) {
+  const overlay = document.getElementById('mario-overlay');
+  const stage = document.getElementById('mario-stage');
+  document.getElementById('mario-sub').textContent = `${w.type} · ${w.color} 到手啦！`;
+  document.getElementById('mario-score').textContent = `¥${totalSpent.toLocaleString()}`;
+  overlay.classList.add('show');
+
+  // Spawn coins
+  stage.innerHTML = '';
+  const coinCount = 18;
+  for (let i = 0; i < coinCount; i++) {
+    setTimeout(() => {
+      const coin = document.createElement('div');
+      coin.className = 'pixel-coin';
+      coin.textContent = '¥';
+      coin.style.left = (5 + Math.random() * 88) + '%';
+      coin.style.top = '-30px';
+      coin.style.animationDuration = (0.8 + Math.random() * 1.2) + 's';
+      coin.style.animationDelay = '0s';
+      stage.appendChild(coin);
+      setTimeout(() => coin.remove(), 2200);
+    }, i * 80);
+  }
+
+  // Spawn stars
+  const starEmojis = ['⭐','🌟','✨','💛','🏆'];
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const star = document.createElement('div');
+      star.className = 'pixel-star';
+      star.textContent = starEmojis[Math.floor(Math.random()*starEmojis.length)];
+      star.style.left = (10 + Math.random() * 75) + '%';
+      star.style.top = (40 + Math.random() * 40) + '%';
+      star.style.animationDuration = (0.6 + Math.random() * 0.4) + 's';
+      stage.appendChild(star);
+      setTimeout(() => star.remove(), 1200);
+    }, 300 + i * 200);
+  }
+
+  // Play 8-bit sound via Web Audio API
+  playMarioSound();
+}
+
+function playMarioSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047, 784, 1047, 1319];
+    const durations = [0.1, 0.1, 0.1, 0.2, 0.1, 0.1, 0.3];
+    let time = ctx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + durations[i]);
+      osc.start(time); osc.stop(time + durations[i]);
+      time += durations[i];
+    });
+  } catch(e) { /* 静默失败 */ }
+}
+
+function finishArchive() {
+  document.getElementById('mario-overlay').classList.remove('show');
+  updateDashboard();
+  renderWishlist();
+  renderHomeRecords();
+  switchTab('home');
+}
+
+// TAB SWITCHING
+function switchTab(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item, .tab-center').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tab = document.getElementById('tab-'+id);
+  if (tab) tab.classList.add('active');
+  document.querySelector('.scroll-body').scrollTop = 0;
+  if (id==='home') { renderHomeRecords(); }
+  if (id==='records') renderRecords();
+  if (id==='sa') renderSA();
+  if (id==='wishlist') renderWishlist();
+  if (id==='scan') { updateSASelect(); resetScan(); }
+}
+
+// FILE HANDLING
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentImageBase64 = ev.target.result.split(',')[1];
+    currentImageType = file.type || 'image/jpeg';
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('preview-section').style.display = 'block';
+    document.getElementById('preview-img').src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeImage() {
+  if (!currentImageBase64) return;
+  document.getElementById('preview-section').style.display = 'none';
+  document.getElementById('analyzing-section').style.display = 'block';
+  document.getElementById('scan-results').style.display = 'none';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: currentImageType, data: currentImageBase64 } },
+          { type: 'text', text: `你是爱马仕小票识别助手。从图片提取所有商品，仅返回JSON，无其他文字：{"store":"门店名称（无则写Hermès）","date":"YYYY-MM-DD（无法识别则写${new Date().toISOString().slice(0,10)}）","items":[{"item":"商品完整名称","category":"包/丝巾/配饰/香水/成衣/家居/其他 之一","amount":数字金额不含符号,"count_ratio":true或false（香水食品为false，其他为true）}]}` }
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    showMultiResults(parsed);
+  } catch(err) {
+    showMultiResults({ store:'', date:new Date().toISOString().slice(0,10), items:[{item:'',category:'其他',amount:0,count_ratio:true}] });
+    showToast('识别失败，请手动填写');
+  }
+  document.getElementById('analyzing-section').style.display = 'none';
+}
+
+let scannedItems = [];
+
+function matchStore(storeName) {
+  if (!storeName) return null;
+  let matched = state.stores.find(s => s.name.includes(storeName) || storeName.includes(s.name));
+  if (!matched) {
+    for (const brandStores of Object.values(STORE_DB)) {
+      for (const cities of Object.values(brandStores)) {
+        for (const stores of Object.values(cities)) {
+          const found = stores.find(s => s.includes(storeName) || storeName.includes(s.replace(/爱马仕|香奈儿|劳力士/g,'').trim()));
+          if (found) {
+            matched = state.stores.find(s => s.name === found);
+            if (!matched) { matched = { id:'st'+Date.now(), name:found, city:'' }; state.stores.push(matched); save(); }
+            break;
+          }
+        }
+        if (matched) break;
+      }
+      if (matched) break;
+    }
+  }
+  return matched;
+}
+
+function showMultiResults(d) {
+  const matched = matchStore(d.store);
+  document.getElementById('r-store').value = matched ? matched.id : '';
+  document.getElementById('sr-store-label').textContent = matched ? matched.name : '点击更改门店';
+  document.getElementById('sr-store-label').style.color = matched ? 'var(--charcoal)' : 'var(--light)';
+  document.getElementById('sr-date').value = d.date || new Date().toISOString().slice(0,10);
+  updateSASelect();
+
+  scannedItems = (d.items || [{item:d.item||'',category:d.category||'其他',amount:d.amount||0,count_ratio:d.count_ratio!==false}])
+    .map((it,i) => ({...it, selected:true, id:'si'+i}));
+
+  renderItemCards();
+  updateImpact();
+  document.getElementById('scan-results').style.display = 'block';
+}
+
+function renderItemCards() {
+  const cats = ['包','丝巾','配饰','香水','成衣','家居','其他'];
+  document.getElementById('item-cards-list').innerHTML = scannedItems.map((it,i) => `
+    <div class="item-card ${it.selected?'selected':''}" id="icard-${i}">
+      <div class="item-card-main">
+        <div class="item-check ${it.selected?'on':''}" onclick="toggleItem(${i})"></div>
+        <div class="item-info">
+          <div class="item-name">${it.item||'未识别商品'}</div>
+          <div class="item-sub">${it.category} · ${it.count_ratio?'计入累积':'不计入'}</div>
+        </div>
+        <div class="item-amount">¥${(it.amount||0).toLocaleString()}</div>
+        <button class="item-edit-btn" onclick="toggleEditPanel(${i})">编辑</button>
+      </div>
+      <div class="item-edit-panel" id="ipanel-${i}">
+        <div class="item-edit-row">
+          <span class="item-edit-label">商品</span>
+          <input class="item-edit-input" value="${it.item||''}" oninput="updateItemField(${i},'item',this.value)">
+        </div>
+        <div class="item-edit-row">
+          <span class="item-edit-label">品类</span>
+          <select class="item-edit-input" onchange="updateItemField(${i},'category',this.value)">
+            ${cats.map(c=>`<option ${c===it.category?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="item-edit-row">
+          <span class="item-edit-label">金额</span>
+          <input class="item-edit-input" type="number" inputmode="decimal" value="${it.amount||''}" oninput="updateItemField(${i},'amount',parseFloat(this.value)||0);updateImpact()">
+        </div>
+        <div class="item-ratio-row">
+          <span>计入累积</span>
+          <label class="toggle"><input type="checkbox" ${it.count_ratio?'checked':''} onchange="updateItemField(${i},'count_ratio',this.checked);updateImpact()"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleItem(i) {
+  scannedItems[i].selected = !scannedItems[i].selected;
+  const card = document.getElementById(`icard-${i}`);
+  const check = card.querySelector('.item-check');
+  card.classList.toggle('selected', scannedItems[i].selected);
+  check.classList.toggle('on', scannedItems[i].selected);
+  // Update sub text selection state
+  updateImpact();
+}
+
+function toggleEditPanel(i) {
+  document.getElementById(`ipanel-${i}`).classList.toggle('open');
+}
+
+function updateItemField(i, field, val) {
+  scannedItems[i][field] = val;
+  const card = document.getElementById(`icard-${i}`);
+  if (card) {
+    const name = card.querySelector('.item-name');
+    const sub = card.querySelector('.item-sub');
+    const amt = card.querySelector('.item-amount');
+    if (name) name.textContent = scannedItems[i].item || '未识别商品';
+    if (sub) sub.textContent = `${scannedItems[i].category} · ${scannedItems[i].count_ratio?'计入累积':'不计入'}`;
+    if (amt) amt.textContent = `¥${(scannedItems[i].amount||0).toLocaleString()}`;
+  }
+}
+
+function updateImpact() {
+  const primary = getPrimaryWish();
+  const spent = calcSpentForWish(primary);
+  const targetPrice = primary ? primary.price : 250000;
+  const before = (spent / targetPrice * 100).toFixed(1);
+  // Sum selected items that count toward ratio
+  const addAmt = scannedItems.filter(it => it.selected && it.count_ratio).reduce((s,it) => s+it.amount, 0);
+  const after = ((spent + addAmt) / targetPrice * 100).toFixed(1);
+  const newGap = Math.max(targetPrice - spent - addAmt, 0);
+  const afterRatio = parseFloat(after);
+
+  let advice = '';
+  if (addAmt > 0 && afterRatio >= 130) {
+    advice = `<div style="margin-top:8px;font-size:12px;color:#C0392B;font-weight:500">⚠️ 累积已严重超标，这笔消费没有意义，建议不要记录。</div>`;
+  } else if (addAmt > 0 && afterRatio >= 100 && parseFloat(before) < 100) {
+    advice = `<div style="margin-top:8px;font-size:12px;color:#2D6A4F;font-weight:500">🎯 保存后累积即达标。之后请停止消费，专注推进申请。</div>`;
+  } else if (addAmt > 0 && afterRatio >= 80 && parseFloat(before) < 80) {
+    advice = `<div style="margin-top:8px;font-size:12px;color:#8B6914;font-weight:500">✨ 保存后累积将达 80%，可以开始向 SA 表达意向，无需再增加消费。</div>`;
+  }
+
+  const bar = document.getElementById('impact-bar');
+  bar.innerHTML = `保存后累积将从 <strong>${before}%</strong> 升至 <strong>${after}%</strong>，还差 <strong>${newGap>0?'¥'+newGap.toLocaleString():'已达标'}</strong>${advice}`;
+  bar.style.display = scannedItems.length > 0 ? 'block' : 'none';
+}
+
+function saveAllItems() {
+  const selected = scannedItems.filter(it => it.selected);
+  if (!selected.length) { showToast('请至少选择一条记录'); return; }
+  const storeId = document.getElementById('r-store').value;
+  const store = state.stores.find(s => s.id === storeId);
+  const storeName = store ? store.name : '';
+  const date = document.getElementById('sr-date').value;
+  const sa = document.getElementById('sr-sa').value;
+
+  selected.forEach(it => {
+    state.records.push({
+      id: 'r'+Date.now()+Math.random(),
+      item: it.item || '未命名商品',
+      cat: it.category,
+      storeId, store: storeName, date,
+      amount: it.amount || 0,
+      ratio: it.count_ratio,
+      sa, note: '',
+    });
+  });
+  state.visits += 1;
+  save();
+  updateDashboard();
+  renderHomeRecords();
+  showToast(`已保存 ${selected.length} 条记录`);
+  setTimeout(() => switchTab('home'), 1200);
+}
+
+function resetScan() {
+  currentImageBase64 = null; currentImageType = null; scannedItems = [];
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('preview-section').style.display = 'none';
+  document.getElementById('analyzing-section').style.display = 'none';
+  document.getElementById('scan-results').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// SA
+function saveSA() {
+  const name = document.getElementById('sa-name').value.trim();
+  if (!name) { showToast('请填写姓名'); return; }
+  state.sas.push({
+    id: 's'+Date.now(),
+    name, store: document.getElementById('sa-store').value,
+    level: document.getElementById('sa-level').value,
+    note: document.getElementById('sa-note').value,
+  });
+  save(); renderSA(); closeSheet('sa-sheet');
+  document.getElementById('sa-name').value=''; document.getElementById('sa-store').value=''; document.getElementById('sa-note').value='';
+  showToast('SA 已添加');
+}
+
+// WISH
+function saveWish() {
+  const price = parseFloat(document.getElementById('w-price').value)||0;
+  if (!price) { showToast('请填写预估价格'); return; }
+  const storeEl = document.getElementById('w-store');
+  const brand = document.getElementById('w-brand').value;
+  state.wishlist.push({
+    id: 'w'+Date.now(),
+    brand,
+    type: document.getElementById('w-type').value,
+    color: document.getElementById('w-color').value,
+    leather: document.getElementById('w-leather').value,
+    hw: document.getElementById('w-hw').value,
+    price,
+    priority: parseInt(document.getElementById('w-pri').value),
+    status: document.getElementById('w-status').value,
+    storeId: storeEl.value,
+  });
+  save(); renderWishlist(); closeSheet('wish-sheet');
+  showToast('目标商品已添加');
+}
+
+// SHEETS
+function openSheet(id) {
+  if (id === 'target-picker') renderTargetPicker();
+  if (id === 'wish-sheet') {
+    // Init type options and cat hint for default brand
+    updateWishTypeOptions('w-type', 'Hermès');
+    updateCatHint('w-cat-hint', 'Hermès');
+    document.getElementById('w-brand').value = 'Hermès';
+    document.getElementById('w-color').value = '';
+    document.getElementById('w-leather').value = '';
+    document.getElementById('w-hw').value = '';
+    document.getElementById('w-price').value = '';
+    document.getElementById('w-store').value = '';
+    document.getElementById('w-store-label').textContent = '选择门店 →';
+    document.getElementById('w-store-label').style.color = 'var(--light)';
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.sheet-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+
+// TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// INIT
+updateDashboard();
+renderHomeRecords();
+// Init wish sheet type options on load
+updateWishTypeOptions('w-type', 'Hermès');
+updateCatHint('w-cat-hint', 'Hermès');
+updateWishTypeOptions('we-type', 'Hermès');
+</script>
+</body>
+</html>

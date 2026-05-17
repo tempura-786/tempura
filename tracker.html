@@ -1054,6 +1054,9 @@ body {
         <div class="section-more" onclick="switchTab('records')">全部 →</div>
       </div>
       <div id="home-records"></div>
+      <div style="text-align:center;padding:24px 0 8px">
+        <button onclick="confirmReset()" style="background:none;border:none;font-size:11px;color:var(--light);letter-spacing:0.08em;cursor:pointer;font-family:'DM Sans',sans-serif;opacity:0.6">重置为示例数据</button>
+      </div>
     </div>
 
     <!-- SCAN -->
@@ -1602,6 +1605,13 @@ let currentImageBase64 = null;
 let currentImageType = null;
 
 function save() { localStorage.setItem('hermes_state', JSON.stringify(state)); }
+
+function confirmReset() {
+  if (confirm('清除所有数据并恢复示例内容？')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
 
 // Migration: ensure stores array exists for users with old saved state
 if (!state.stores) {

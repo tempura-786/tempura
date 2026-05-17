@@ -578,10 +578,12 @@ body {
   flex-shrink: 0;
 }
 .wish-title { font-size: 15px; font-weight: 500; flex: 1; margin: 0 12px; }
-.wish-status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; }
+.wish-status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; user-select: none; border: none; font-family: -apple-system, 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 3px; }
+.wish-status-badge:active { opacity: 0.7; }
 .status-waiting { background: #FEF3CD; color: #7A5C1E; }
 .status-plan { background: var(--cream-dark); color: var(--mid); }
 .status-done { background: #D4EDDA; color: #2D5A2D; }
+.status-applied { background: #DDEEFF; color: #1A5276; }
 .wish-detail { font-size: 12px; color: var(--light); margin: 0 0 14px 40px; }
 .wish-ratio-section { padding-top: 12px; border-top: 0.5px solid var(--cream-dark); }
 .wish-ratio-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -1640,7 +1642,7 @@ function renderSA() {
 
 function renderWishlist() {
   const sorted = [...state.wishlist].sort((a,b)=>a.priority-b.priority);
-  const statusCls = {'等待中':'status-waiting','计划中':'status-plan','已到手':'status-done','已申请':'status-waiting'};
+  const statusCls = {'等待中':'status-waiting','计划中':'status-plan','已到手':'status-done','已申请':'status-applied'};
   document.getElementById('wish-list').innerHTML = sorted.length ? sorted.map(w => {
     const isPrimary = w.id === state.primaryWishId;
     const spent = calcSpentForWish(w);
@@ -1653,7 +1655,7 @@ function renderWishlist() {
         <div class="wish-title">${w.type} · ${w.color}</div>
         ${isPrimary
           ? `<div class="primary-badge">⭐ 主目标</div>`
-          : `<div class="wish-status-badge ${statusCls[w.status]||'status-plan'}">${w.status}</div>`}
+          : `<button class="wish-status-badge ${statusCls[w.status]||'status-plan'}" onclick="cycleWishStatus('${w.id}')">${w.status} ›</button>`}
       </div>
       <div class="wish-detail">${w.leather} · ${w.hw} · ${getStoreName(w.storeId)} · 约 ¥${w.price.toLocaleString()}</div>
       <div class="wish-ratio-section">
@@ -1669,6 +1671,17 @@ function renderWishlist() {
       ${w.status === '已到手' ? `<button class="archive-btn" onclick="startArchive('${w.id}')">🎉 拿包归档</button>` : ''}
     </div>`;
   }).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有添加目标包款</div></div>';
+}
+
+function cycleWishStatus(id) {
+  const statuses = ['计划中', '已申请', '等待中', '已到手'];
+  const w = state.wishlist.find(w => w.id === id);
+  if (!w) return;
+  w.status = statuses[(statuses.indexOf(w.status) + 1) % statuses.length];
+  save();
+  renderWishlist();
+  updateDashboard();
+  showToast('状态：' + w.status);
 }
 
 function updateSASelect() {

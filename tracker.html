@@ -648,6 +648,7 @@ body {
   align-items: flex-end;
 }
 #store-picker-sheet { z-index: 300; }
+#store-picker-sheet .sheet { max-height: 52vh; }
 .sheet-overlay.open { display: flex; }
 .sheet {
   background: var(--white);
@@ -1118,10 +1119,6 @@ body {
     <!-- RECORDS -->
     <div id="page-records" class="page">
       <div class="records-page">
-        <div class="seg-control">
-          <button class="seg-btn active" id="seg-purchase" onclick="switchRecordsTab('purchase')">消费记录</button>
-          <button class="seg-btn" id="seg-visit" onclick="switchRecordsTab('visit')">进店记录</button>
-        </div>
         <div id="purchase-view">
           <div class="filter-scroll" id="filter-scroll">
             <button class="filter-chip active" onclick="filterRec('all',this)">全部</button>
@@ -1133,15 +1130,7 @@ body {
           </div>
           <div id="records-list"></div>
         </div>
-        <div id="visit-view" style="display:none">
-          <div id="visit-list"></div>
-        </div>
       </div>
-    </div>
-
-    <!-- VISIT FAB -->
-    <div class="visit-fab" id="visit-fab" onclick="openVisitSheet()">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </div>
 
     <!-- SA -->
@@ -1529,28 +1518,79 @@ body {
 <script>
 const TARGET_PRICE = 250000;
 const PRIMARY_TARGET = 'Birkin 25 · 金棕 Togo · 金扣';
-const CAT_EMOJI = { '包':'👜','丝巾':'🧣','配饰':'💍','香水':'🌸','成衣':'👗','家居':'🏺','其他':'🛍' };
+const CAT_EMOJI = { '包':'👜','丝巾':'🧣','配饰':'💍','香水':'🌸','成衣':'👗','其他':'🛍' };
+const CAT_HOME_SVG = `<svg width="22" height="22" viewBox="0 0 14 18" style="image-rendering:pixelated;display:block" xmlns="http://www.w3.org/2000/svg">
+  <rect x="5" y="0" width="4" height="1" fill="#C84B20"/>
+  <rect x="4" y="1" width="6" height="2" fill="#C84B20"/>
+  <rect x="3" y="3" width="8" height="1" fill="#C84B20"/>
+  <rect x="1" y="3" width="2" height="3" fill="#A03A15"/>
+  <rect x="11" y="3" width="2" height="3" fill="#A03A15"/>
+  <rect x="2" y="4" width="10" height="1" fill="#C84B20"/>
+  <rect x="1" y="5" width="12" height="5" fill="#C84B20"/>
+  <rect x="2" y="5" width="2" height="4" fill="#E8763A"/>
+  <rect x="1" y="8" width="12" height="1" fill="#8B2C0A"/>
+  <rect x="2" y="10" width="10" height="2" fill="#C84B20"/>
+  <rect x="3" y="12" width="8" height="1" fill="#C84B20"/>
+  <rect x="4" y="13" width="6" height="1" fill="#C84B20"/>
+  <rect x="3" y="14" width="8" height="2" fill="#C84B20"/>
+  <rect x="3" y="15" width="8" height="1" fill="#8B2C0A"/>
+</svg>`;
 const CAT_BADGE = { '包':'badge-bag','丝巾':'badge-scarf','配饰':'badge-acc','香水':'badge-perf','成衣':'badge-acc','家居':'badge-other','其他':'badge-other' };
 
 // STATE — load from localStorage
 let state = JSON.parse(localStorage.getItem('hermes_state') || 'null') || {
   stores: [
-    { id:'st1', name:'上海恒隆广场店', city:'上海' },
-    { id:'st2', name:'北京国贸店', city:'北京' },
+    { id:'st1', name:'爱马仕上海恒隆广场专卖店', city:'上海' },
+    { id:'st2', name:'爱马仕北京国贸商城专卖店', city:'北京' },
   ],
   records: [
-    { id:'r1', item:'Picotin 18 · 黑色 Clémence', cat:'包', storeId:'st1', store:'上海恒隆广场店', date:'2025-03-10', amount:34000, ratio:true, sa:'小王', note:'' },
-    { id:'r2', item:'Carre 90 真丝方巾', cat:'丝巾', storeId:'st1', store:'上海恒隆广场店', date:'2025-04-15', amount:6400, ratio:true, sa:'小王', note:'SA 提到下月有新货' },
-    { id:'r3', item:"Terre d'Hermès 100ml", cat:'香水', storeId:'st1', store:'上海恒隆广场店', date:'2025-04-15', amount:1850, ratio:false, sa:'小王', note:'' },
+    { id:'r0a', item:'皮带 32mm · 黑色 Box', cat:'配饰', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2024-10-12', amount:7800, ratio:true, sa:'小王', note:'' },
+    { id:'r0b', item:'Twilly 真丝细巾 · Brides de Gala', cat:'丝巾', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2024-11-08', amount:3200, ratio:true, sa:'小王', note:'' },
+    { id:'r0c', item:'Bearn 钱夹 · 黑色 Chèvre', cat:'配饰', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2024-12-20', amount:18500, ratio:true, sa:'小王', note:'年末冲一下配货' },
+    { id:'r1',  item:'Picotin Lock 18 · 黑色 Clémence', cat:'包', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-03-10', amount:32000, ratio:true, sa:'小王', note:'' },
+    { id:'r2',  item:'Carre 90 真丝方巾 · Jungle Love', cat:'丝巾', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-04-15', amount:6400, ratio:true, sa:'小王', note:'SA 提到下月有新货' },
+    { id:'r3',  item:"Terre d'Hermès 100ml", cat:'香水', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-04-15', amount:1850, ratio:false, sa:'小王', note:'' },
+    { id:'r4',  item:'Carre 90 真丝方巾 · 蓝色马术', cat:'丝巾', storeId:'st2', store:'爱马仕北京国贸商城专卖店', date:'2025-05-22', amount:6400, ratio:true, sa:'张经理', note:'' },
+    { id:'r5',  item:'Oran Sandal · 黑色 Chèvre', cat:'成衣', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-06-18', amount:9800, ratio:false, sa:'小王', note:'' },
+    { id:'r6',  item:'Agenda PM 手账本 · Epsom', cat:'配饰', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-07-05', amount:8500, ratio:true, sa:'小王', note:'' },
+    { id:'r7',  item:'Eau des Merveilles 100ml', cat:'香水', storeId:'st2', store:'爱马仕北京国贸商城专卖店', date:'2025-08-30', amount:1650, ratio:false, sa:'张经理', note:'' },
+    { id:'r8',  item:'Polo 衫 · 白色', cat:'成衣', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-09-14', amount:6200, ratio:false, sa:'小王', note:'' },
+    { id:'r9',  item:'Calvi 卡夹 · 橙色 Epsom', cat:'配饰', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-10-28', amount:5600, ratio:true, sa:'小王', note:'' },
+    { id:'r10', item:'家居香薰套装', cat:'家居', storeId:'st1', store:'爱马仕上海恒隆广场专卖店', date:'2025-11-03', amount:4200, ratio:false, sa:'小王', note:'' },
+    { id:'r11', item:'Twilly 真丝细巾 · 橙色链条', cat:'丝巾', storeId:'st2', store:'爱马仕北京国贸商城专卖店', date:'2025-12-06', amount:3200, ratio:true, sa:'张经理', note:'节日礼物' },
   ],
   sas: [
-    { id:'s1', name:'小王', store:'上海恒隆广场店', level:'主要 SA', note:'偏好直接沟通，对 Birkin / Kelly 出货有一定话语权，需维持消费频率。生日 5 月初。' },
-    { id:'s2', name:'张经理', store:'北京国贸店', level:'次要 SA', note:'风格较保守，适合通过礼物维系关系。对 Constance 库存了解较多。' },
+    { id:'s1', name:'小王', store:'爱马仕上海恒隆广场专卖店', level:'主要 SA', note:'偏好直接沟通，对 Birkin / Kelly 出货有一定话语权，需维持消费频率。生日 5 月初。' },
+    { id:'s2', name:'张经理', store:'爱马仕北京国贸商城专卖店', level:'次要 SA', note:'风格较保守，适合通过礼物维系关系。对 Constance 库存了解较多。' },
   ],
   wishlist: [
-    { id:'w1', brand:'Hermès', type:'Birkin 25', color:'金棕', leather:'Togo', hw:'金扣 GHW', price:250000, priority:1, status:'等待中', storeId:'st1' },
-    { id:'w2', brand:'Hermès', type:'Kelly 28', color:'黑色', leather:'Box', hw:'银扣 PHW', price:220000, priority:2, status:'计划中', storeId:'st2' },
-    { id:'w3', brand:'Hermès', type:'Evelyne PM', color:'大象灰', leather:'Clémence', hw:'银扣 PHW', price:48000, priority:3, status:'计划中', storeId:'st1' },
+    { id:'w1',  brand:'Hermès', type:'Birkin 25', color:'金棕', leather:'Togo', hw:'金扣 GHW', price:115000, priority:1, status:'等待中', storeId:'st1' },
+    { id:'w2',  brand:'Hermès', type:'Kelly 28', color:'黑色', leather:'Box', hw:'银扣 PHW', price:120000, priority:2, status:'计划中', storeId:'st2' },
+    { id:'w3',  brand:'Hermès', type:'Evelyne 29', color:'大象灰', leather:'TC', hw:'银扣 PHW', price:35500, priority:3, status:'计划中', storeId:'st1' },
+    { id:'wp01', brand:'Hermès', type:'Birkin 25', color:'', leather:'Togo', hw:'', price:115000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp02', brand:'Hermès', type:'Birkin 30', color:'', leather:'Togo', hw:'', price:125000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp03', brand:'Hermès', type:'Birkin Cargo 25', color:'', leather:'', hw:'', price:175000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp04', brand:'Hermès', type:'Kelly 25', color:'', leather:'EP', hw:'', price:115000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp05', brand:'Hermès', type:'Kelly 25', color:'', leather:'Togo', hw:'', price:115000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp06', brand:'Hermès', type:'Kelly 28', color:'', leather:'Togo', hw:'', price:120000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp07', brand:'Hermès', type:'Mini Kelly', color:'一代', leather:'Swift', hw:'', price:67450, priority:4, status:'计划中', storeId:'' },
+    { id:'wp08', brand:'Hermès', type:'Mini Kelly', color:'二代', leather:'EP', hw:'', price:93050, priority:4, status:'计划中', storeId:'' },
+    { id:'wp09', brand:'Hermès', type:'Kelly Danse', color:'', leather:'EP', hw:'', price:83150, priority:4, status:'计划中', storeId:'' },
+    { id:'wp10', brand:'Hermès', type:'Kelly Danse', color:'', leather:'Swift', hw:'', price:83150, priority:4, status:'计划中', storeId:'' },
+    { id:'wp11', brand:'Hermès', type:'Constance 19', color:'', leather:'EP', hw:'', price:85500, priority:4, status:'计划中', storeId:'' },
+    { id:'wp12', brand:'Hermès', type:'Constance 19', color:'', leather:'Chèvre', hw:'', price:98850, priority:4, status:'计划中', storeId:'' },
+    { id:'wp13', brand:'Hermès', type:'Lindy Mini', color:'', leather:'TC', hw:'', price:72700, priority:4, status:'计划中', storeId:'' },
+    { id:'wp14', brand:'Hermès', type:'Lindy 26', color:'', leather:'TC', hw:'', price:86650, priority:4, status:'计划中', storeId:'' },
+    { id:'wp15', brand:'Hermès', type:'2424 Mini', color:'', leather:'EC', hw:'', price:89550, priority:4, status:'计划中', storeId:'' },
+    { id:'wp16', brand:'Hermès', type:'Garden Party', color:'23', leather:'全皮', hw:'', price:36050, priority:4, status:'计划中', storeId:'' },
+    { id:'wp17', brand:'Hermès', type:'Garden Party', color:'30', leather:'帆布', hw:'', price:26550, priority:4, status:'计划中', storeId:'' },
+    { id:'wp18', brand:'Hermès', type:'Picotin Lock', color:'18', leather:'TC', hw:'', price:32000, priority:4, status:'计划中', storeId:'' },
+    { id:'wp19', brand:'Hermès', type:'Picotin Lock', color:'22', leather:'TC', hw:'', price:34350, priority:4, status:'计划中', storeId:'' },
+    { id:'wp20', brand:'Hermès', type:'Evelyne 16', color:'', leather:'TC', hw:'', price:20400, priority:4, status:'计划中', storeId:'' },
+    { id:'wp21', brand:'Hermès', type:'Evelyne 29', color:'', leather:'TC', hw:'', price:35500, priority:4, status:'计划中', storeId:'' },
+    { id:'wp22', brand:'Hermès', type:'Bolide Mini', color:'', leather:'Chèvre', hw:'', price:60500, priority:4, status:'计划中', storeId:'' },
+    { id:'wp23', brand:'Hermès', type:'Jypsiere Mini', color:'', leather:'EC', hw:'', price:77950, priority:4, status:'计划中', storeId:'' },
+    { id:'wp24', brand:'Hermès', type:'Jypsiere Mini', color:'', leather:'Swift', hw:'', price:76800, priority:4, status:'计划中', storeId:'' },
   ],
   visits: 23,
   primaryWishId: 'w1',
@@ -1741,7 +1781,7 @@ function renderHomeRecords() {
   const spent = calcSpent();
   document.getElementById('home-records').innerHTML = recent.length ? recent.map(r => `
     <div class="record-card">
-      <div class="record-cat-dot" style="background:var(--cream-dark)">${CAT_EMOJI[r.cat]||'🛍'}</div>
+      <div class="record-cat-dot" style="background:var(--cream-dark);display:flex;align-items:center;justify-content:center">${r.cat==='家居' ? CAT_HOME_SVG : (CAT_EMOJI[r.cat]||'🛍')}</div>
       <div class="record-info">
         <div class="record-name">${r.item}</div>
         <div class="record-meta">${r.date} · ${r.store}</div>
@@ -1762,7 +1802,7 @@ function renderRecords(filter) {
   const sorted = [...data].reverse();
   document.getElementById('records-list').innerHTML = sorted.length ? sorted.map(r => `
     <div class="record-card" onclick="editRecord('${r.id}')">
-      <div class="record-cat-dot" style="background:var(--cream-dark)">${CAT_EMOJI[r.cat]||'🛍'}</div>
+      <div class="record-cat-dot" style="background:var(--cream-dark);display:flex;align-items:center;justify-content:center">${r.cat==='家居' ? CAT_HOME_SVG : (CAT_EMOJI[r.cat]||'🛍')}</div>
       <div class="record-info">
         <div class="record-name">${r.item}</div>
         <div class="record-meta">${r.date} · ${r.store}</div>
@@ -1864,7 +1904,7 @@ function populateStoreSelect(selId, selectedId) {
 // ── 品牌配置：商品类型 + 品类规则说明 ─────────────────────────────
 const BRAND_CONFIG = {
   'Hermès': {
-    types: ['Birkin 25','Birkin 30','Birkin 35','Kelly 25','Kelly 28','Kelly 32','Constance 18','Constance 24','Picotin 18','Evelyne PM','Lindy 26','其他'],
+    types: ['Birkin 25','Birkin 30','Birkin 35','Birkin Cargo 25','Kelly 25','Kelly 28','Kelly 32','Kelly Danse','Mini Kelly','Constance 19','Constance 24','Lindy Mini','Lindy 26','2424 Mini','Garden Party','Picotin Lock','Evelyne 16','Evelyne 29','Evelyne PM','Bolide Mini','Jypsiere Mini','其他'],
     catHint: '💡 爱马仕配货规则：丝巾、配饰、皮带、小皮具通常计入配货比；香水、鞋履一般不计入。具体以 SA 确认为准。',
   },
   'Chanel': {

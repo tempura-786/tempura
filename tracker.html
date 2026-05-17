@@ -450,6 +450,51 @@ body {
 .records-page { padding: 16px; }
 .records-page .record-card { cursor: pointer; }
 .records-page .record-card:active { opacity: 0.7; }
+
+/* SEGMENTED CONTROL */
+.seg-control {
+  display: flex;
+  background: var(--bg2);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 14px;
+}
+.seg-btn {
+  flex: 1; padding: 8px; border: none; background: none;
+  border-radius: 8px; font-size: 13px; color: var(--text2);
+  cursor: pointer; font-family: -apple-system, 'DM Sans', sans-serif;
+}
+.seg-btn.active {
+  background: var(--white); color: var(--text1); font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* VISIT CARDS */
+.visit-card {
+  margin: 0 0 8px;
+  background: var(--bg2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.visit-card:active { opacity: 0.7; }
+.visit-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.visit-date { font-size: 14px; font-weight: 500; color: var(--text1); }
+.visit-store { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.visit-sa-tag {
+  display: inline-flex; align-items: center;
+  background: var(--gold-pale); border-radius: 4px;
+  padding: 2px 8px; font-size: 11px; color: var(--gold); flex-shrink: 0;
+}
+.visit-note { font-size: 12px; color: var(--text3); margin-top: 8px; line-height: 1.5; }
+.visit-fab {
+  position: fixed; bottom: calc(var(--tab-h) + 16px); right: 20px;
+  width: 50px; height: 50px; background: var(--text1); border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2); cursor: pointer; z-index: 90;
+}
+.visit-fab.visible { display: flex; }
+.visit-fab svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
 .filter-scroll {
   display: flex;
   gap: 8px;
@@ -1072,16 +1117,30 @@ body {
     <!-- RECORDS -->
     <div id="page-records" class="page">
       <div class="records-page">
-        <div class="filter-scroll" id="filter-scroll">
-          <button class="filter-chip active" onclick="filterRec('all',this)">全部</button>
-          <button class="filter-chip" onclick="filterRec('包',this)">包</button>
-          <button class="filter-chip" onclick="filterRec('丝巾',this)">丝巾</button>
-          <button class="filter-chip" onclick="filterRec('配饰',this)">配饰</button>
-          <button class="filter-chip" onclick="filterRec('香水',this)">香水</button>
-          <button class="filter-chip" onclick="filterRec('其他',this)">其他</button>
+        <div class="seg-control">
+          <button class="seg-btn active" id="seg-purchase" onclick="switchRecordsTab('purchase')">消费记录</button>
+          <button class="seg-btn" id="seg-visit" onclick="switchRecordsTab('visit')">进店记录</button>
         </div>
-        <div id="records-list"></div>
+        <div id="purchase-view">
+          <div class="filter-scroll" id="filter-scroll">
+            <button class="filter-chip active" onclick="filterRec('all',this)">全部</button>
+            <button class="filter-chip" onclick="filterRec('包',this)">包</button>
+            <button class="filter-chip" onclick="filterRec('丝巾',this)">丝巾</button>
+            <button class="filter-chip" onclick="filterRec('配饰',this)">配饰</button>
+            <button class="filter-chip" onclick="filterRec('香水',this)">香水</button>
+            <button class="filter-chip" onclick="filterRec('其他',this)">其他</button>
+          </div>
+          <div id="records-list"></div>
+        </div>
+        <div id="visit-view" style="display:none">
+          <div id="visit-list"></div>
+        </div>
       </div>
+    </div>
+
+    <!-- VISIT FAB -->
+    <div class="visit-fab" id="visit-fab" onclick="openVisitSheet()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </div>
 
     <!-- SA -->
@@ -1309,6 +1368,40 @@ body {
   </div>
 </div>
 
+<!-- VISIT SHEET -->
+<div class="sheet-overlay" id="visit-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="visit-sheet-title">记录进店</div>
+    <div class="sheet-body">
+      <input type="hidden" id="v-id">
+      <div class="sheet-field">
+        <label class="sheet-label">日期</label>
+        <input class="sheet-input" id="v-date" type="date">
+      </div>
+      <div class="sheet-field">
+        <label class="sheet-label">门店</label>
+        <div class="store-picker-trigger" onclick="openStorePicker('visit')">
+          <span id="v-store-label" style="color:var(--light)">选择门店 →</span>
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--light);fill:none;stroke-width:2;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <input type="hidden" id="v-store">
+      </div>
+      <div class="sheet-field">
+        <label class="sheet-label">SA</label>
+        <select class="sheet-input" id="v-sa"><option value="">—</option></select>
+      </div>
+      <div class="sheet-field">
+        <label class="sheet-label">备注</label>
+        <textarea class="sheet-input" id="v-note" rows="3" style="resize:none" placeholder="和 SA 聊了什么、有没有看到心仪的款式..."></textarea>
+      </div>
+      <button class="sheet-btn" onclick="saveVisit()">保存</button>
+      <button class="sheet-btn sheet-btn-outline" id="v-delete-btn" style="color:#C0392B;border-color:rgba(192,57,43,0.3);display:none" onclick="deleteVisit()">删除此记录</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('visit-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- RECORD EDIT SHEET -->
 <div class="sheet-overlay" id="record-edit-sheet">
   <div class="sheet">
@@ -1460,7 +1553,8 @@ let state = JSON.parse(localStorage.getItem('hermes_state') || 'null') || {
   ],
   visits: 23,
   primaryWishId: 'w1',
-  timeWindow: 12
+  timeWindow: 12,
+  visitsLog: []
 };
 
 let currentImageBase64 = null;
@@ -1490,6 +1584,8 @@ if (state.wishlist.some(w => !w.brand)) {
 if (!state.archived) { state.archived = []; save(); }
 // Migration: ensure timeWindow exists
 if (state.timeWindow === undefined) { state.timeWindow = 12; save(); }
+// Migration: ensure visitsLog exists
+if (!state.visitsLog) { state.visitsLog = []; save(); }
 
 function getWindowCutoff() {
   if (!state.timeWindow) return null;
@@ -1980,7 +2076,7 @@ let storePickerTarget = 'wish'; // 'wish' | 'record' | 'edit' | 'rec-edit' | 'ma
 
 function openStorePicker(target) {
   storePickerTarget = target;
-  const inputId = target === 'wish' ? 'w-store' : target === 'edit' ? 'we-store' : target === 'rec-edit' ? 're-store' : target === 'manual' ? 'm-store' : 'r-store';
+  const inputId = target === 'wish' ? 'w-store' : target === 'edit' ? 'we-store' : target === 'rec-edit' ? 're-store' : target === 'manual' ? 'm-store' : target === 'visit' ? 'v-store' : 'r-store';
   const currentId = document.getElementById(inputId).value;
   const brandEl = document.getElementById(
     target === 'wish' ? 'w-brand' : target === 'edit' ? 'we-brand' : null
@@ -2099,8 +2195,8 @@ function applyStoreSelection(storeName) {
     save();
   }
 
-  const inputId = storePickerTarget === 'wish' ? 'w-store' : storePickerTarget === 'edit' ? 'we-store' : storePickerTarget === 'rec-edit' ? 're-store' : storePickerTarget === 'manual' ? 'm-store' : 'r-store';
-  const labelId = storePickerTarget === 'wish' ? 'w-store-label' : storePickerTarget === 'edit' ? 'we-store-label' : storePickerTarget === 'rec-edit' ? 're-store-label' : storePickerTarget === 'manual' ? 'm-store-label' : 'sr-store-label';
+  const inputId = storePickerTarget === 'wish' ? 'w-store' : storePickerTarget === 'edit' ? 'we-store' : storePickerTarget === 'rec-edit' ? 're-store' : storePickerTarget === 'manual' ? 'm-store' : storePickerTarget === 'visit' ? 'v-store' : 'r-store';
+  const labelId = storePickerTarget === 'wish' ? 'w-store-label' : storePickerTarget === 'edit' ? 'we-store-label' : storePickerTarget === 'rec-edit' ? 're-store-label' : storePickerTarget === 'manual' ? 'm-store-label' : storePickerTarget === 'visit' ? 'v-store-label' : 'sr-store-label';
   document.getElementById(inputId).value = store.id;
   const labelEl = document.getElementById(labelId);
   if (labelEl) { labelEl.textContent = storeName; labelEl.style.color = 'var(--charcoal)'; }
@@ -2398,8 +2494,9 @@ function switchTab(id) {
   const tab = document.getElementById('tab-'+id);
   if (tab) tab.classList.add('active');
   document.querySelector('.scroll-body').scrollTop = 0;
+  document.getElementById('visit-fab').classList.remove('visible');
   if (id==='home') { renderHomeRecords(); }
-  if (id==='records') renderRecords();
+  if (id==='records') { renderRecords(); if (currentRecordsTab === 'visit') document.getElementById('visit-fab').classList.add('visible'); }
   if (id==='sa') renderSA();
   if (id==='wishlist') renderWishlist();
   if (id==='scan') { updateSASelect(); resetScan(); }
@@ -2674,6 +2771,97 @@ function deleteRecord() {
   renderHomeRecords();
   renderRecords();
   closeSheet('record-edit-sheet');
+  showToast('记录已删除');
+}
+
+let currentRecordsTab = 'purchase';
+let editingVisitId = null;
+
+function switchRecordsTab(tab) {
+  currentRecordsTab = tab;
+  document.getElementById('seg-purchase').classList.toggle('active', tab === 'purchase');
+  document.getElementById('seg-visit').classList.toggle('active', tab === 'visit');
+  document.getElementById('purchase-view').style.display = tab === 'purchase' ? 'block' : 'none';
+  document.getElementById('visit-view').style.display = tab === 'visit' ? 'block' : 'none';
+  document.getElementById('visit-fab').classList.toggle('visible', tab === 'visit');
+  if (tab === 'visit') renderVisitLog();
+}
+
+function renderVisitLog() {
+  const sorted = [...state.visitsLog].sort((a,b) => b.date.localeCompare(a.date));
+  document.getElementById('visit-list').innerHTML = sorted.length ? sorted.map(v => `
+    <div class="visit-card" onclick="openVisitSheet('${v.id}')">
+      <div class="visit-top">
+        <div>
+          <div class="visit-date">${v.date}</div>
+          <div class="visit-store">${v.store || '未指定门店'}</div>
+        </div>
+        ${v.sa ? `<div class="visit-sa-tag">${v.sa}</div>` : ''}
+      </div>
+      ${v.note ? `<div class="visit-note">${v.note}</div>` : ''}
+    </div>
+  `).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有进店记录</div></div>';
+}
+
+function openVisitSheet(id) {
+  editingVisitId = id || null;
+  const isEdit = !!id;
+  document.getElementById('visit-sheet-title').textContent = isEdit ? '编辑进店记录' : '记录进店';
+  document.getElementById('v-delete-btn').style.display = isEdit ? 'block' : 'none';
+  const saSel = document.getElementById('v-sa');
+  saSel.innerHTML = '<option value="">—</option>' + state.sas.map(s => `<option>${s.name}</option>`).join('');
+  if (isEdit) {
+    const v = state.visitsLog.find(v => v.id === id);
+    if (!v) return;
+    document.getElementById('v-id').value = v.id;
+    document.getElementById('v-date').value = v.date;
+    document.getElementById('v-store').value = v.storeId || '';
+    const lbl = document.getElementById('v-store-label');
+    lbl.textContent = v.store || '选择门店 →';
+    lbl.style.color = v.store ? 'var(--charcoal)' : 'var(--light)';
+    saSel.value = v.sa || '';
+    document.getElementById('v-note').value = v.note || '';
+  } else {
+    document.getElementById('v-id').value = '';
+    document.getElementById('v-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('v-store').value = '';
+    document.getElementById('v-store-label').textContent = '选择门店 →';
+    document.getElementById('v-store-label').style.color = 'var(--light)';
+    document.getElementById('v-note').value = '';
+  }
+  openSheet('visit-sheet');
+}
+
+function saveVisit() {
+  const date = document.getElementById('v-date').value;
+  if (!date) { showToast('请选择日期'); return; }
+  const storeId = document.getElementById('v-store').value;
+  const store = state.stores.find(s => s.id === storeId);
+  const entry = {
+    id: editingVisitId || ('v' + Date.now()),
+    date,
+    storeId: storeId || '',
+    store: store ? store.name : '',
+    sa: document.getElementById('v-sa').value,
+    note: document.getElementById('v-note').value.trim(),
+  };
+  if (editingVisitId) {
+    const idx = state.visitsLog.findIndex(v => v.id === editingVisitId);
+    if (idx !== -1) state.visitsLog[idx] = entry;
+  } else {
+    state.visitsLog.push(entry);
+  }
+  save();
+  renderVisitLog();
+  closeSheet('visit-sheet');
+  showToast(editingVisitId ? '进店记录已更新' : '进店记录已保存');
+}
+
+function deleteVisit() {
+  state.visitsLog = state.visitsLog.filter(v => v.id !== editingVisitId);
+  save();
+  renderVisitLog();
+  closeSheet('visit-sheet');
   showToast('记录已删除');
 }
 

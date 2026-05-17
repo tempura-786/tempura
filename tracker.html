@@ -448,6 +448,8 @@ body {
 
 /* RECORDS PAGE */
 .records-page { padding: 16px; }
+.records-page .record-card { cursor: pointer; }
+.records-page .record-card:active { opacity: 0.7; }
 .filter-scroll {
   display: flex;
   gap: 8px;
@@ -1307,6 +1309,68 @@ body {
   </div>
 </div>
 
+<!-- RECORD EDIT SHEET -->
+<div class="sheet-overlay" id="record-edit-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">编辑记录</div>
+    <div class="sheet-body">
+      <input type="hidden" id="re-id">
+      <div class="sheet-field">
+        <label class="sheet-label">商品名称</label>
+        <input class="sheet-input" id="re-item" placeholder="商品名称">
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field">
+          <label class="sheet-label">品类</label>
+          <select class="sheet-input" id="re-cat">
+            <option>包</option><option>丝巾</option><option>配饰</option>
+            <option>香水</option><option>成衣</option><option>家居</option><option>其他</option>
+          </select>
+        </div>
+        <div class="sheet-field">
+          <label class="sheet-label">金额（元）</label>
+          <input class="sheet-input" id="re-amount" type="number" inputmode="decimal">
+        </div>
+      </div>
+      <div class="sheet-field">
+        <label class="sheet-label">门店</label>
+        <div class="store-picker-trigger" onclick="openStorePicker('rec-edit')">
+          <span id="re-store-label" style="color:var(--light)">选择门店 →</span>
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--light);fill:none;stroke-width:2;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <input type="hidden" id="re-store">
+      </div>
+      <div class="sheet-grid">
+        <div class="sheet-field">
+          <label class="sheet-label">日期</label>
+          <input class="sheet-input" id="re-date" type="date">
+        </div>
+        <div class="sheet-field">
+          <label class="sheet-label">SA</label>
+          <select class="sheet-input" id="re-sa"><option value="">—</option></select>
+        </div>
+      </div>
+      <div class="toggle-row" style="background:var(--bg2);border-radius:10px;margin-bottom:8px">
+        <div class="toggle-info">
+          <div class="toggle-label">计入累积</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="re-ratio">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="sheet-field">
+        <label class="sheet-label">备注（选填）</label>
+        <textarea class="sheet-input" id="re-note" rows="2" style="resize:none"></textarea>
+      </div>
+      <button class="sheet-btn" onclick="saveRecordEdit()">保存修改</button>
+      <button class="sheet-btn sheet-btn-outline" style="color:#C0392B;border-color:rgba(192,57,43,0.3)" onclick="deleteRecord()">删除此记录</button>
+      <button class="sheet-btn sheet-btn-outline" onclick="closeSheet('record-edit-sheet')">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- MANUAL ENTRY SHEET -->
 <div class="sheet-overlay" id="manual-sheet">
   <div class="sheet">
@@ -1593,11 +1657,14 @@ function renderHomeRecords() {
   `).join('') : '<div class="empty-state"><div class="empty-icon">H</div><div class="empty-text">还没有消费记录</div></div>';
 }
 
+let currentRecordFilter = 'all';
+
 function renderRecords(filter) {
-  const data = (!filter || filter === 'all') ? state.records : state.records.filter(r=>r.cat===filter);
+  if (filter !== undefined) currentRecordFilter = filter;
+  const data = (!currentRecordFilter || currentRecordFilter === 'all') ? state.records : state.records.filter(r=>r.cat===currentRecordFilter);
   const sorted = [...data].reverse();
   document.getElementById('records-list').innerHTML = sorted.length ? sorted.map(r => `
-    <div class="record-card">
+    <div class="record-card" onclick="editRecord('${r.id}')">
       <div class="record-cat-dot" style="background:var(--cream-dark)">${CAT_EMOJI[r.cat]||'🛍'}</div>
       <div class="record-info">
         <div class="record-name">${r.item}</div>
@@ -1909,13 +1976,12 @@ function getStoreDBForBrand(brand) {
 }
 
 let storePickerBrand = 'Hermès';
-let storePickerTarget = 'wish'; // 'wish' | 'record' | 'edit'
+let storePickerTarget = 'wish'; // 'wish' | 'record' | 'edit' | 'rec-edit' | 'manual'
 
 function openStorePicker(target) {
   storePickerTarget = target;
-  const inputId = target === 'wish' ? 'w-store' : target === 'edit' ? 'we-store' : 'r-store';
+  const inputId = target === 'wish' ? 'w-store' : target === 'edit' ? 'we-store' : target === 'rec-edit' ? 're-store' : target === 'manual' ? 'm-store' : 'r-store';
   const currentId = document.getElementById(inputId).value;
-  // Detect brand from current form
   const brandEl = document.getElementById(
     target === 'wish' ? 'w-brand' : target === 'edit' ? 'we-brand' : null
   );
@@ -2033,8 +2099,8 @@ function applyStoreSelection(storeName) {
     save();
   }
 
-  const inputId = storePickerTarget === 'wish' ? 'w-store' : storePickerTarget === 'edit' ? 'we-store' : storePickerTarget === 'manual' ? 'm-store' : 'r-store';
-  const labelId = storePickerTarget === 'wish' ? 'w-store-label' : storePickerTarget === 'edit' ? 'we-store-label' : storePickerTarget === 'manual' ? 'm-store-label' : 'sr-store-label';
+  const inputId = storePickerTarget === 'wish' ? 'w-store' : storePickerTarget === 'edit' ? 'we-store' : storePickerTarget === 'rec-edit' ? 're-store' : storePickerTarget === 'manual' ? 'm-store' : 'r-store';
+  const labelId = storePickerTarget === 'wish' ? 'w-store-label' : storePickerTarget === 'edit' ? 'we-store-label' : storePickerTarget === 'rec-edit' ? 're-store-label' : storePickerTarget === 'manual' ? 'm-store-label' : 'sr-store-label';
   document.getElementById(inputId).value = store.id;
   const labelEl = document.getElementById(labelId);
   if (labelEl) { labelEl.textContent = storeName; labelEl.style.color = 'var(--charcoal)'; }
@@ -2548,6 +2614,67 @@ function resetScan() {
   document.getElementById('analyzing-section').style.display = 'none';
   document.getElementById('scan-results').style.display = 'none';
   document.getElementById('file-input').value = '';
+}
+
+let editingRecordId = null;
+
+function editRecord(id) {
+  const r = state.records.find(r => r.id === id);
+  if (!r) return;
+  editingRecordId = id;
+  document.getElementById('re-id').value = id;
+  document.getElementById('re-item').value = r.item;
+  document.getElementById('re-cat').value = r.cat;
+  document.getElementById('re-amount').value = r.amount;
+  document.getElementById('re-store').value = r.storeId || '';
+  const storeName = r.store || getStoreName(r.storeId);
+  const lbl = document.getElementById('re-store-label');
+  lbl.textContent = storeName || '选择门店 →';
+  lbl.style.color = storeName ? 'var(--charcoal)' : 'var(--light)';
+  document.getElementById('re-date').value = r.date;
+  document.getElementById('re-ratio').checked = r.ratio;
+  document.getElementById('re-note').value = r.note || '';
+  const saSel = document.getElementById('re-sa');
+  saSel.innerHTML = '<option value="">—</option>' + state.sas.map(s =>
+    `<option ${s.name === r.sa ? 'selected' : ''}>${s.name}</option>`
+  ).join('');
+  openSheet('record-edit-sheet');
+}
+
+function saveRecordEdit() {
+  const r = state.records.find(r => r.id === editingRecordId);
+  if (!r) return;
+  const item = document.getElementById('re-item').value.trim();
+  const amount = parseFloat(document.getElementById('re-amount').value) || 0;
+  if (!item) { showToast('请填写商品名称'); return; }
+  if (!amount) { showToast('请填写金额'); return; }
+  const storeId = document.getElementById('re-store').value;
+  const store = state.stores.find(s => s.id === storeId);
+  r.item = item;
+  r.cat = document.getElementById('re-cat').value;
+  r.amount = amount;
+  r.storeId = storeId || r.storeId;
+  r.store = store ? store.name : r.store;
+  r.date = document.getElementById('re-date').value;
+  r.ratio = document.getElementById('re-ratio').checked;
+  r.sa = document.getElementById('re-sa').value;
+  r.note = document.getElementById('re-note').value.trim();
+  save();
+  updateDashboard();
+  renderHomeRecords();
+  renderRecords();
+  closeSheet('record-edit-sheet');
+  showToast('记录已更新');
+}
+
+function deleteRecord() {
+  state.records = state.records.filter(r => r.id !== editingRecordId);
+  save();
+  updateDashboard();
+  renderHomeRecords();
+  renderRecords();
+  closeSheet('record-edit-sheet');
+  showToast('记录已删除');
 }
 
 function openManualSheet() {
